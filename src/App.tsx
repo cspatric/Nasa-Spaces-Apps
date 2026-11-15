@@ -135,8 +135,8 @@ export default function App() {
     fly({ lon: info.center[0], lat: info.center[1], zoom: info.zoom, pitch: 25, bearing: 0 })
   }
 
-  const startDisaster = (kind: DisasterKind, params: DisasterParams) => {
-    const center = inspected ?? hoverStore.get().view ?? { lon: -60.02, lat: -3.12 }
+  const startDisaster = (kind: DisasterKind, params: DisasterParams, at?: { lon: number; lat: number }) => {
+    const center = at ?? inspected ?? hoverStore.get().view ?? { lon: -60.02, lat: -3.12 }
     setDStats(null)
     setDisaster({ tick: ++tick.current, kind, center: { lon: center.lon, lat: center.lat }, params })
     sound.alert()
@@ -158,7 +158,9 @@ export default function App() {
   const runActions = (actions: Action[]) => {
     for (const a of actions) {
       if (a.type === 'fly') fly({ lon: a.lon, lat: a.lat, zoom: a.zoom })
-      else if (a.type === 'layer') setOverlays((o) => ({ ...o, [a.id]: { ...o[a.id], on: a.on } }))
+      else if (a.type === 'layer') setOverlays((o) => (a.id in o ? { ...o, [a.id]: { ...o[a.id], on: a.on } } : o))
+      else if (a.type === 'tab') { setRightOpen(true); setTab(a.tab) }
+      else if (a.type === 'base') setBaseId(a.id)
       else if (a.type === 'allLayers') setOverlays((o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, { ...v, on: a.on }])) as OverlayState)
       else if (a.type === 'region') void openRegion(a.id)
       else if (a.type === 'forecast') { setTab('forecast'); runForecast() }
@@ -169,11 +171,13 @@ export default function App() {
         const params = { ...DEFAULT_PARAMS, ...dParams, ...a.params }
         setDKind(a.kind)
         setDParams(params)
-        startDisaster(a.kind, params)
+        startDisaster(a.kind, params, a.lon !== undefined && a.lat !== undefined ? { lon: a.lon, lat: a.lat } : undefined)
       }
     }
   }
   const assistantContext = [
+    `Layers on: ${OVERLAYS.filter((o) => overlays[o.id as OverlayId].on).map((o) => o.id).join(', ') || 'none'}. Air currents: ${wind ? 'on' : 'off'}. Base map: ${baseId}. Panel tab: ${tab}`,
+    regionList.length ? `Ready-made regions: ${regionList.map((r) => `${r.id}${r.ready ? '' : ' (being prepared)'}`).join(', ')}` : '',
     inspected ? `Selected place: ${inspected.lat.toFixed(3)}, ${inspected.lon.toFixed(3)}` : 'No place selected',
     region ? `Region open: ${region.info.name}, overall risk ${region.data.risk?.overall.level ?? 'unknown'} (${region.data.risk?.overall.main ?? 'none'}), place ${region.data.risk?.overall.place ?? ''}` : '',
     forecast.result?.risk?.available ? `Forecast of the selected place: overall risk ${forecast.result.risk.overall.level} (${forecast.result.risk.overall.main})` : '',

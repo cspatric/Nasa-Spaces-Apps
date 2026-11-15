@@ -1,4 +1,4 @@
-import type { OverlayId } from './catalog'
+import type { BaseId, OverlayId } from './catalog'
 import { CITIES } from './cities'
 import type { DisasterKind, DisasterParams } from './disasters'
 import type { Lang } from './i18n'
@@ -15,7 +15,9 @@ export type Action =
   | { type: 'allLayers'; on: boolean }
   | { type: 'region'; id: string }
   | { type: 'forecast' }
-  | { type: 'disaster'; kind: DisasterKind; params: Partial<DisasterParams> }
+  | { type: 'disaster'; kind: DisasterKind; params: Partial<DisasterParams>; lon?: number; lat?: number }
+  | { type: 'tab'; tab: 'data' | 'forecast' | 'regions' }
+  | { type: 'base'; id: BaseId }
   | { type: 'wind'; on: boolean }
   | { type: 'year'; year: number }
   | { type: 'clear' }

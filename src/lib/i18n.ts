@@ -87,13 +87,14 @@ const PT: Record<string, string> = {
   
   'Air currents': 'Correntes de ar', 'Wind at 850 hPa over the Amazon (Open-Meteo)': 'Vento a 850 hPa sobre a Amazônia (Open-Meteo)', live: 'ao vivo', 'typical trade winds': 'ventos alísios típicos', '{n} of 3 on': '{n} de 3 ligados',
   Assistant: 'Assistente', 'Ask, or tell the map what to do…': 'Pergunte, ou diga ao mapa o que fazer…', 'Esc closes': 'Esc fecha', 'Understands English, Portuguese and Spanish': 'Entende inglês, português e espanhol',
-  'I did not understand that as a command. Open questions need an AI key on the backend (ANTHROPIC_API_KEY); commands like the examples below work without it.': 'Não entendi isso como comando. Perguntas abertas precisam de uma chave de IA no backend (ANTHROPIC_API_KEY); comandos como os exemplos abaixo funcionam sem ela.',
+  'I did not understand that as a command. Open questions need the AI key on the backend (BEDROCK_API_KEY); commands like the examples below work without it.': 'Não entendi isso como comando. Perguntas abertas precisam de uma chave de IA no backend (BEDROCK_API_KEY); comandos como os exemplos abaixo funcionam sem ela.',
   'The assistant could not answer now.': 'O assistente não conseguiu responder agora.', 'The backend is not reachable, so only commands work now.': 'O backend não está acessível, então só comandos funcionam agora.',
   'Data and methods': 'Dados e métodos',
   'Risks': 'Riscos', 'Places': 'Lugares', 'Charts': 'Gráficos', 'Overall risk': 'Risco geral', 'Main risk': 'Risco principal', 'Details': 'Detalhes', 'Less': 'Menos',
   'Not applicable here': 'Não se aplica aqui', 'About this forecast': 'Sobre esta previsão', 'Ready': 'Pronta', 'Selected place': 'Lugar selecionado',
   'radar scenes': 'cenas de radar', 'months of rain': 'meses de chuva', 'Forecast until {date}': 'Previsão até {date}', 'Error': 'Erro', 'vs last year': 'vs ano passado', 'Trend / decade': 'Tendência / década',
   'Average of {n} places': 'Média de {n} lugares',
+  'Thinking…': 'Pensando…', '{n} change(s) on the map': '{n} mudança(s) no mapa',
   // forecast
   'Forecast to 2030': 'Previsão até 2030', 'Learns from this point since 2016 and projects radar and rain to 2030.': 'Aprende com o histórico deste ponto desde 2016 e projeta radar e chuva até 2030.',
   'Run forecast': 'Gerar previsão', 'Searching radar scenes…': 'Buscando cenas de radar…', 'Reading radar history': 'Lendo histórico do radar', 'Reading monthly rain': 'Lendo chuva mensal',
@@ -238,13 +239,14 @@ const ES: Record<string, string> = {
   
   'Air currents': 'Corrientes de aire', 'Wind at 850 hPa over the Amazon (Open-Meteo)': 'Viento a 850 hPa sobre el Amazonas (Open-Meteo)', live: 'en vivo', 'typical trade winds': 'vientos alisios típicos', '{n} of 3 on': '{n} de 3 activos',
   Assistant: 'Asistente', 'Ask, or tell the map what to do…': 'Pregunta, o dile al mapa qué hacer…', 'Esc closes': 'Esc cierra', 'Understands English, Portuguese and Spanish': 'Entiende inglés, portugués y español',
-  'I did not understand that as a command. Open questions need an AI key on the backend (ANTHROPIC_API_KEY); commands like the examples below work without it.': 'No lo entendí como comando. Las preguntas abiertas necesitan una clave de IA en el backend (ANTHROPIC_API_KEY); comandos como los ejemplos de abajo funcionan sin ella.',
+  'I did not understand that as a command. Open questions need the AI key on the backend (BEDROCK_API_KEY); commands like the examples below work without it.': 'No lo entendí como comando. Las preguntas abiertas necesitan una clave de IA en el backend (BEDROCK_API_KEY); comandos como los ejemplos de abajo funcionan sin ella.',
   'The assistant could not answer now.': 'El asistente no pudo responder ahora.', 'The backend is not reachable, so only commands work now.': 'El backend no está accesible, así que ahora solo funcionan los comandos.',
   'Data and methods': 'Datos y métodos',
   'Risks': 'Riesgos', 'Places': 'Lugares', 'Charts': 'Gráficos', 'Overall risk': 'Riesgo general', 'Main risk': 'Riesgo principal', 'Details': 'Detalles', 'Less': 'Menos',
   'Not applicable here': 'No aplica aquí', 'About this forecast': 'Acerca de este pronóstico', 'Ready': 'Lista', 'Selected place': 'Lugar seleccionado',
   'radar scenes': 'escenas de radar', 'months of rain': 'meses de lluvia', 'Forecast until {date}': 'Pronóstico hasta {date}', 'Error': 'Error', 'vs last year': 'vs año pasado', 'Trend / decade': 'Tendencia / década',
   'Average of {n} places': 'Promedio de {n} lugares',
+  'Thinking…': 'Pensando…', '{n} change(s) on the map': '{n} cambio(s) en el mapa',
   // forecast
   'Forecast to 2030': 'Pronóstico a 2030', 'Learns from this point since 2016 and projects radar and rain to 2030.': 'Aprende del historial de este punto desde 2016 y proyecta radar y lluvia hasta 2030.',
   'Run forecast': 'Generar pronóstico', 'Searching radar scenes…': 'Buscando escenas de radar…', 'Reading radar history': 'Leyendo historial del radar', 'Reading monthly rain': 'Leyendo lluvia mensual',
