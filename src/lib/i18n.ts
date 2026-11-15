@@ -85,6 +85,10 @@ const PT: Record<string, string> = {
   '{n} sample places': '{n} lugares amostrados', 'being prepared': 'em preparo', '3D view': 'Vista 3D', '{n} on': '{n} ligadas', 'none on': 'nenhuma ligada', '{n} of 2 on': '{n} de 2 ligados', running: 'em andamento', simulations: 'simulações',
   'Average of {n} sample places spread over the region.': 'Média de {n} lugares amostrados pela região.',
   'Drag a rectangle on the map. Esc cancels.': 'Arraste um retângulo no mapa. Esc cancela.', 'Select area': 'Selecionar área', 'Select area (or hold Shift and drag)': 'Selecionar área (ou segure Shift e arraste)',
+  'Air currents': 'Correntes de ar', 'Wind at 850 hPa over the Amazon (Open-Meteo)': 'Vento a 850 hPa sobre a Amazônia (Open-Meteo)', live: 'ao vivo', 'typical trade winds': 'ventos alísios típicos', '{n} of 3 on': '{n} de 3 ligados',
+  Assistant: 'Assistente', 'Ask, or tell the map what to do…': 'Pergunte, ou diga ao mapa o que fazer…', 'Esc closes': 'Esc fecha', 'Understands English, Portuguese and Spanish': 'Entende inglês, português e espanhol',
+  'I did not understand that as a command. Open questions need an AI key on the backend (ANTHROPIC_API_KEY); commands like the examples below work without it.': 'Não entendi isso como comando. Perguntas abertas precisam de uma chave de IA no backend (ANTHROPIC_API_KEY); comandos como os exemplos abaixo funcionam sem ela.',
+  'The assistant could not answer now.': 'O assistente não conseguiu responder agora.', 'The backend is not reachable, so only commands work now.': 'O backend não está acessível, então só comandos funcionam agora.',
   // forecast
   'Forecast to 2030': 'Previsão até 2030', 'Learns from this point since 2016 and projects radar and rain to 2030.': 'Aprende com o histórico deste ponto desde 2016 e projeta radar e chuva até 2030.',
   'Run forecast': 'Gerar previsão', 'Searching radar scenes…': 'Buscando cenas de radar…', 'Reading radar history': 'Lendo histórico do radar', 'Reading monthly rain': 'Lendo chuva mensal',
@@ -95,7 +99,7 @@ const PT: Record<string, string> = {
   'Future rain is unknown: the backscatter forecast assumes normal rain.': 'A chuva futura é desconhecida: a previsão do radar assume chuva normal.',
   'The 80 % band comes from backtest errors and widens with the years ahead; it does not include events not yet seen.': 'A faixa de 80 % vem dos erros do teste retroativo e aumenta com os anos; não inclui eventos ainda não vistos.',
   // credits
-  'Sentinel-2 cloudless © EOX · NASA GIBS, GPM IMERG · ASF NISAR and OPERA · AWS Terrain Tiles · © OpenStreetMap contributors · MapLibre': 'Sentinel-2 cloudless © EOX · NASA GIBS · ASF NISAR e OPERA · AWS Terrain Tiles · © colaboradores do OpenStreetMap · MapLibre',
+  'Sentinel-2 cloudless © EOX · NASA GIBS, GPM IMERG · ASF NISAR and OPERA · Open-Meteo · AWS Terrain Tiles · © OpenStreetMap contributors · MapLibre': 'Sentinel-2 cloudless © EOX · NASA GIBS · ASF NISAR e OPERA · AWS Terrain Tiles · © colaboradores do OpenStreetMap · MapLibre',
 }
 
 const ES: Record<string, string> = {
@@ -171,6 +175,10 @@ const ES: Record<string, string> = {
   '{n} sample places': '{n} lugares muestreados', 'being prepared': 'en preparación', '3D view': 'Vista 3D', '{n} on': '{n} activas', 'none on': 'ninguna activa', '{n} of 2 on': '{n} de 2 activos', running: 'en curso', simulations: 'simulaciones',
   'Average of {n} sample places spread over the region.': 'Promedio de {n} lugares muestreados por la región.',
   'Drag a rectangle on the map. Esc cancels.': 'Arrastra un rectángulo en el mapa. Esc cancela.', 'Select area': 'Seleccionar área', 'Select area (or hold Shift and drag)': 'Seleccionar área (o mantén Shift y arrastra)',
+  'Air currents': 'Corrientes de aire', 'Wind at 850 hPa over the Amazon (Open-Meteo)': 'Viento a 850 hPa sobre el Amazonas (Open-Meteo)', live: 'en vivo', 'typical trade winds': 'vientos alisios típicos', '{n} of 3 on': '{n} de 3 activos',
+  Assistant: 'Asistente', 'Ask, or tell the map what to do…': 'Pregunta, o dile al mapa qué hacer…', 'Esc closes': 'Esc cierra', 'Understands English, Portuguese and Spanish': 'Entiende inglés, portugués y español',
+  'I did not understand that as a command. Open questions need an AI key on the backend (ANTHROPIC_API_KEY); commands like the examples below work without it.': 'No lo entendí como comando. Las preguntas abiertas necesitan una clave de IA en el backend (ANTHROPIC_API_KEY); comandos como los ejemplos de abajo funcionan sin ella.',
+  'The assistant could not answer now.': 'El asistente no pudo responder ahora.', 'The backend is not reachable, so only commands work now.': 'El backend no está accesible, así que ahora solo funcionan los comandos.',
   // forecast
   'Forecast to 2030': 'Pronóstico a 2030', 'Learns from this point since 2016 and projects radar and rain to 2030.': 'Aprende del historial de este punto desde 2016 y proyecta radar y lluvia hasta 2030.',
   'Run forecast': 'Generar pronóstico', 'Searching radar scenes…': 'Buscando escenas de radar…', 'Reading radar history': 'Leyendo historial del radar', 'Reading monthly rain': 'Leyendo lluvia mensual',
@@ -180,7 +188,7 @@ const ES: Record<string, string> = {
   '{a} radar scenes, {b} months of rain. Band: 80 %. Forecast until {date}.': '{a} escenas de radar, {b} meses de lluvia. Banda: 80 %. Pronóstico hasta {date}.',
   'Future rain is unknown: the backscatter forecast assumes normal rain.': 'La lluvia futura es desconocida: el pronóstico del radar asume lluvia normal.',
   'The 80 % band comes from backtest errors and widens with the years ahead; it does not include events not yet seen.': 'La banda del 80 % viene de los errores de la prueba retroactiva y crece con los años; no incluye eventos aún no vistos.',
-  'Sentinel-2 cloudless © EOX · NASA GIBS, GPM IMERG · ASF NISAR and OPERA · AWS Terrain Tiles · © OpenStreetMap contributors · MapLibre': 'Sentinel-2 cloudless © EOX · NASA GIBS · ASF NISAR y OPERA · AWS Terrain Tiles · © colaboradores de OpenStreetMap · MapLibre',
+  'Sentinel-2 cloudless © EOX · NASA GIBS, GPM IMERG · ASF NISAR and OPERA · Open-Meteo · AWS Terrain Tiles · © OpenStreetMap contributors · MapLibre': 'Sentinel-2 cloudless © EOX · NASA GIBS · ASF NISAR y OPERA · AWS Terrain Tiles · © colaboradores de OpenStreetMap · MapLibre',
 }
 
 const DICT: Record<Lang, Record<string, string>> = { en: {}, pt: PT, es: ES }

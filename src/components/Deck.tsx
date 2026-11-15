@@ -111,7 +111,7 @@ export default function Deck({ name, deck, steps, finish, skip, back }: Props) {
 
       <main className={`slide ${step.solo ? 'solo' : ''}`} key={`${step.id}-${lang === 'en' ? 'a' : 'b'}`}>
         <div className="copy">
-          <div className="kick mono">{tx(step.kicker)}</div>
+          <div className="kick mono">{step.solo ? tx(step.kicker) : `${String(i).padStart(2, '0')} · ${tx(step.kicker).replace(/^\d\d · /, '')}`}</div>
           {step.heading ?? <h2>{tx(step.title)}</h2>}
           <Narration key={`${step.id}-${lang}`} text={tx(step.narration)} label={lang === 'pt' ? 'Narração' : lang === 'es' ? 'Narración' : 'Narration'} />
         </div>

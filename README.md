@@ -24,7 +24,13 @@ Page Down; the left arrow goes back), progress ticks you can click, and a narrat
 |---|---|
 | `/` | Presentation of the project (12 pages): the problem, what was built, the data, the layers, time, the forecast, risks, ready-made regions, simulations, the honest wording. It ends by leading to the satellite deck. |
 | `/satelite` | The satellite deck "Dancing with the SARs" (11 pages): NISAR, its history, the radar echo, pixels, two dates and a change threshold, what to write on the map, rain and its lag, the model, the honest wording. It ends by leading to the map. |
-| `/mapa` | The observatory (3D map, layers, forecast, risks, simulations). |
+| `/mapa` | The observatory (3D map, layers, forecast, risks, simulations, air currents, AI bar). Both decks end with an "Open the map" button that lands here. |
+
+### On the map
+
+- **Air currents**: animated streamlines of the 850 hPa wind (live from Open-Meteo, a typical Amazon pattern if it is offline), a layer toggle in the left panel; the trade winds crossing the Amazon are easiest to see at continental zoom.
+- **AI bar** (the `AI` button or Ctrl/Cmd+K): a centered bar over a blurred map. Commands in English, Portuguese or Spanish ("fly to Manaus", "show rain", "open the Amazon forecast", "simulate a magnitude 7 earthquake here") run offline in the page; open questions go to the backend `POST /assistant` and are answered from what the map shows, never invented numbers.
+- **Charts**: smooth areas and lines with hover read-outs, forecast bands and a today marker.
 
 English, Portuguese and Spanish everywhere. The look is a mission-control screen: dark, thin lines, the Earth's limb,
 monospace labels, a clock in UTC, a figure on an "instrument screen" next to the narration.

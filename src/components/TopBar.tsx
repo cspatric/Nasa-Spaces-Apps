@@ -14,6 +14,7 @@ interface Props {
   rightOpen: boolean
   onLeft: () => void
   onRight: () => void
+  onAssistant: () => void
 }
 
 export function BrandMark({ size = 30 }: { size?: number }) {
@@ -57,7 +58,7 @@ function CityMenu({ onCity }: { onCity: (c: City) => void }) {
   )
 }
 
-export default function TopBar({ onFly, onCity, onPlace, leftOpen, rightOpen, onLeft, onRight }: Props) {
+export default function TopBar({ onFly, onCity, onPlace, leftOpen, rightOpen, onLeft, onRight, onAssistant }: Props) {
   const { t, lang, setLang } = useI18n()
   const [muted, setMuted] = useState(sound.isMuted())
   return (
@@ -77,6 +78,7 @@ export default function TopBar({ onFly, onCity, onPlace, leftOpen, rightOpen, on
         <CityMenu onCity={onCity} />
       </nav>
       <button className={`toggle glass ${rightOpen ? 'on' : ''}`} onClick={onRight} aria-pressed={rightOpen}>{t('Inspector')}</button>
+      <button className="toggle glass ai-btn" onClick={onAssistant} title={`${t('Assistant')} (Ctrl+K)`} aria-label={t('Assistant')}><span aria-hidden="true">✦</span> AI</button>
       <button className="toggle glass sound" aria-pressed={!muted} aria-label={t(muted ? 'Sound off' : 'Sound on')} title={t(muted ? 'Sound off' : 'Sound on')}
         onClick={() => { sound.setMuted(!muted); setMuted(!muted) }}>
         <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">

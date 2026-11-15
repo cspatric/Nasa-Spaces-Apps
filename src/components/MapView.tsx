@@ -9,6 +9,8 @@ import { GIBS, gibsUrl, overlayUrl } from '../lib/gibs'
 import { hoverStore } from '../lib/hover'
 import { bbox, FLOOD_RADIUS_KM, floodArea, zonesFor, type Disaster, type ZoneStats } from '../lib/disasters'
 import { sampleGlow } from '../lib/lights'
+import { loadWind } from '../lib/wind'
+import { startWind } from '../lib/windCanvas'
 import { hexToRgb } from '../lib/tint'
 import { registerProtocols } from '../lib/protocols'
 import type { Area, CameraCommand, FlyRequest, LonLat, OverlayState, Pin } from '../lib/types'
@@ -23,6 +25,9 @@ interface Props {
   selectedPinId: string | null
   flyTo: FlyRequest | null
   command: CameraCommand | null
+  /** Air currents (animated wind particles). */
+  wind: boolean
+  onWind: (live: boolean | null) => void
   /** Area selection: drag a rectangle on the map. */
   selectMode: boolean
   area: Area | null
@@ -409,6 +414,25 @@ export default function MapView(p: Props) {
     const map = mapRef.current
     if (map && ready) map.setTerrain({ source: 'dem', exaggeration: p.exaggeration })
   }, [ready, p.exaggeration])
+
+  // Air currents: real wind (or typical trade winds) drawn as particles over the map.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready || !p.wind) return
+    let stop: (() => void) | null = null
+    let cancelled = false
+    void loadWind().then((g) => {
+      if (cancelled) return
+      p.onWind(g.live)
+      stop = startWind(map, g)
+    })
+    return () => {
+      cancelled = true
+      stop?.()
+      p.onWind(null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, p.wind])
 
   // Area selection outline and forecast labels.
   useEffect(() => {

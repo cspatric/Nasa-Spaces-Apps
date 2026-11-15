@@ -28,7 +28,7 @@ export interface RiskResult {
   reason?: string
   landCover?: { class: string; confidence: number; cvAccuracy: number; trainedOn: number } | null
   risks: RiskItem[]
-  overall: { score: number; level: 'low' | 'moderate' | 'high'; main: string | null }
+  overall: { score: number; level: 'low' | 'moderate' | 'high'; main: string | null; place?: string | null }
   note: string
 }
 export interface ForecastResult {

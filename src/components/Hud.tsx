@@ -6,6 +6,7 @@ interface Props {
   active: GibsLayer[]
   blocked: string[]
   scenario: boolean
+  wind: 'live' | 'typical' | null
   onZoomIn: () => void
   onZoomOut: () => void
   onNorth: () => void
@@ -16,13 +17,14 @@ interface Props {
 
 const fmtHeight = (m: number) => (m >= 10_000 ? `${Math.round(m / 1000).toLocaleString('en-US')} km` : `${Math.round(m).toLocaleString('en-US')} m`)
 
-export default function Hud({ active, blocked, scenario, onZoomIn, onZoomOut, onNorth, onTilt, selecting, onSelect }: Props) {
+export default function Hud({ active, blocked, scenario, wind, onZoomIn, onZoomOut, onNorth, onTilt, selecting, onSelect }: Props) {
   const h = useHover()
   const { t } = useI18n()
   return (
     <div className="hud">
       {selecting && <div className="select-hint glass">{t('Drag a rectangle on the map. Esc cancels.')}</div>}
       {h.loading && <div className="loading-pill glass"><span className="spin" />{t('Loading imagery…')}</div>}
+      {wind && <div className="legend glass"><span><i style={{ background: '#9ff3e6' }} />{t('Air currents')} · 850 hPa · {t(wind === 'live' ? 'live' : 'typical trade winds')}</span></div>}
       {active.length > 0 && (
         <div className="legend glass">
           {active.map((l) => (

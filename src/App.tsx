@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import type { Area, CameraCommand, FlyRequest, LonLat, OverlayState, Pin } from './lib/types'
+import Assistant from './components/Assistant'
 import Hud from './components/Hud'
 import InspectorPanel, { type Tab } from './components/InspectorPanel'
 import LayerPanel from './components/LayerPanel'
@@ -11,6 +12,7 @@ import type { City } from './lib/cities'
 import { imageryMs, indexFromMs, msFromIndex, overlayStatus } from './lib/dates'
 import { useLiveSeries } from './lib/live'
 import { hoverStore } from './lib/hover'
+import type { Action } from './lib/assistant'
 import { DEFAULT_PARAMS, type Disaster, type DisasterKind, type DisasterParams, type ZoneStats } from './lib/disasters'
 import { useForecast, type ForecastResult } from './lib/forecast'
 import { marksFor } from './lib/forecastMarks'
@@ -54,6 +56,8 @@ export default function App() {
   const [rightOpen, setRightOpen] = useState(true)
   const [cities, setCities] = useState(true)
   const [buildings, setBuildings] = useState(true)
+  const [wind, setWind] = useState(false)
+  const [windLive, setWindLive] = useState<boolean | null>(null)
   const [exaggeration, setExaggeration] = useState(2.6)
   const tick = useRef(0)
   const [dKind, setDKind] = useState<DisasterKind>('earthquake')
@@ -162,6 +166,51 @@ export default function App() {
     fly({ lon: info.center[0], lat: info.center[1], zoom: info.zoom, pitch: 25, bearing: 0 })
   }
 
+  const startDisaster = (kind: DisasterKind, params: DisasterParams) => {
+    const center = inspected ?? hoverStore.get().view ?? { lon: -60.02, lat: -3.12 }
+    setDStats(null)
+    setDisaster({ tick: ++tick.current, kind, center: { lon: center.lon, lat: center.lat }, params })
+    sound.alert()
+    if (kind === 'earthquake') sound.quake(params.magnitude)
+    else if (kind === 'flood') sound.flood()
+    else if (kind === 'wildfire') sound.fire()
+    else sound.storm()
+  }
+
+  // The assistant bar (button or Ctrl/Cmd+K): what it asks the map to do
+  const [assistantOpen, setAssistantOpen] = useState(false)
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setAssistantOpen((v) => !v) }
+    }
+    window.addEventListener('keydown', key)
+    return () => window.removeEventListener('keydown', key)
+  }, [])
+  const runActions = (actions: Action[]) => {
+    for (const a of actions) {
+      if (a.type === 'fly') fly({ lon: a.lon, lat: a.lat, zoom: a.zoom })
+      else if (a.type === 'layer') setOverlays((o) => ({ ...o, [a.id]: { ...o[a.id], on: a.on } }))
+      else if (a.type === 'allLayers') setOverlays((o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, { ...v, on: a.on }])) as OverlayState)
+      else if (a.type === 'region') void openRegion(a.id)
+      else if (a.type === 'forecast') { setTab('forecast'); runForecast() }
+      else if (a.type === 'wind') setWind(a.on)
+      else if (a.type === 'year') { const i = indexFromMs(Date.UTC(a.year, 6, 1)); setPlaying(false); setIndex(Math.min(TIMELINE_DAYS, Math.max(0, i))); setCommitted(Math.min(TIMELINE_DAYS, Math.max(0, i))) }
+      else if (a.type === 'clear') { setDisaster(null); setDStats(null); setInspected(null); setArea(null); setRegion(null) }
+      else if (a.type === 'disaster') {
+        const params = { ...DEFAULT_PARAMS, ...dParams, ...a.params }
+        setDKind(a.kind)
+        setDParams(params)
+        startDisaster(a.kind, params)
+      }
+    }
+  }
+  const assistantContext = [
+    inspected ? `Selected place: ${inspected.lat.toFixed(3)}, ${inspected.lon.toFixed(3)}` : 'No place selected',
+    region ? `Region open: ${region.info.name}, overall risk ${region.data.risk?.overall.level ?? 'unknown'} (${region.data.risk?.overall.main ?? 'none'}), place ${region.data.risk?.overall.place ?? ''}` : '',
+    forecast.result?.risk?.available ? `Forecast of the selected place: overall risk ${forecast.result.risk.overall.level} (${forecast.result.risk.overall.main})` : '',
+    `Timeline date: ${new Date(dateMs).toISOString().slice(0, 10)}`,
+  ].filter(Boolean).join('. ')
+
   const savePin = () => {
     if (!inspected) return
     const id = String(Date.now())
@@ -182,6 +231,8 @@ export default function App() {
         flyTo={flyTo}
         command={command}
         buildings={buildings}
+        wind={wind}
+        onWind={setWindLive}
         cities={cities}
         blocked={blocked}
         disaster={disaster}
@@ -202,6 +253,7 @@ export default function App() {
       />
       </Suspense>
       <TopBar
+        onAssistant={() => setAssistantOpen(true)}
         onFly={(p: CameraPreset) => fly(p)}
         onCity={(c: City) => fly({ lon: c.lon, lat: c.lat, zoom: CITY_3D_ZOOM, bearing: c.bearing })}
         onPlace={(p: Place) => {
@@ -224,6 +276,8 @@ export default function App() {
         onCities={setCities}
         buildings={buildings}
         onBuildings={setBuildings}
+        wind={wind}
+        onWindToggle={setWind}
         exaggeration={exaggeration}
         onExaggeration={setExaggeration}
         disaster={{
@@ -231,16 +285,7 @@ export default function App() {
           droughtScore: forecast.result?.risk?.risks.find((r) => r.id === 'drought_fire')?.score ?? null,
           hasPoint: inspected !== null,
           onKind: setDKind, onParams: setDParams,
-          onRun: () => {
-            const center = inspected ?? hoverStore.get().view ?? { lon: -60.02, lat: -3.12 }
-            setDStats(null)
-            setDisaster({ tick: ++tick.current, kind: dKind, center: { lon: center.lon, lat: center.lat }, params: dParams })
-            sound.alert()
-            if (dKind === 'earthquake') sound.quake(dParams.magnitude)
-            else if (dKind === 'flood') sound.flood()
-            else if (dKind === 'wildfire') sound.fire()
-            else sound.storm()
-          },
+          onRun: () => startDisaster(dKind, dParams),
           onClear: () => { setDisaster(null); setDStats(null) },
         }}
       />
@@ -283,9 +328,11 @@ export default function App() {
           onGo={(p) => fly({ lon: p.lon, lat: p.lat, zoom: Math.max(hoverStore.get().zoom, 7.5), pitch: 60 })}
         />
       </Suspense>
+      {assistantOpen && <Assistant onClose={() => setAssistantOpen(false)} ctx={{ regions: regionList, hasPoint: inspected !== null }} context={assistantContext} run={runActions} />}
       <Hud
         active={OVERLAYS.filter((o) => overlays[o.id as OverlayId].on)}
         blocked={blocked}
+        wind={windLive === null ? null : windLive ? 'live' : 'typical'}
         scenario={overlayStatus({}, dateMs) === 'scenario'}
         onZoomIn={() => setCommand({ tick: ++tick.current, type: 'zoomIn' })}
         onZoomOut={() => setCommand({ tick: ++tick.current, type: 'zoomOut' })}
@@ -308,7 +355,7 @@ export default function App() {
         clamped={clamped}
       />
       <div className="credits">
-        {t('Sentinel-2 cloudless © EOX · NASA GIBS, GPM IMERG · ASF NISAR and OPERA · AWS Terrain Tiles · © OpenStreetMap contributors · MapLibre')}
+        {t('Sentinel-2 cloudless © EOX · NASA GIBS, GPM IMERG · ASF NISAR and OPERA · Open-Meteo · AWS Terrain Tiles · © OpenStreetMap contributors · MapLibre')}
       </div>
     </div>
   )

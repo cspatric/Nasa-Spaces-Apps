@@ -320,3 +320,41 @@ export function SegmentBar({ parts }: { parts: { w: number; label: Tri; color: s
     </div>
   )
 }
+
+/** Air currents, drawn as streamlines that flow from the Atlantic (right) over the basin to the Andes (left). */
+export function Flow() {
+  const tx = useTx()
+  const lines = Array.from({ length: 11 }, (_, k) => {
+    const y = 40 + k * 20
+    const bend = (k % 2 ? 1 : -1) * (12 + (k % 3) * 8)
+    return `M 560 ${y + 20} C 430 ${y + bend}, 300 ${y - bend}, 40 ${y - 6 + (k - 5) * 3}`
+  })
+  return (
+    <svg className="svg" viewBox="0 0 600 280" role="img" aria-label="Air currents flowing over the Amazon">
+      <defs><linearGradient id="fl-g" x1="1" x2="0"><stop offset="0" stopColor="#3be0c5" stopOpacity=".1" /><stop offset=".5" stopColor="#3be0c5" /><stop offset="1" stopColor="#ffffff" stopOpacity=".8" /></linearGradient></defs>
+      <rect x="0" y="0" width="600" height="280" fill="none" />
+      {lines.map((d, k) => (
+        <path key={k} d={d} fill="none" stroke="url(#fl-g)" strokeWidth="2" strokeLinecap="round" strokeDasharray="14 22" opacity={0.45 + (k % 3) * 0.2}>
+          <animate attributeName="stroke-dashoffset" from="72" to="0" dur={`${3.2 + (k % 4) * 0.5}s`} repeatCount="indefinite" />
+        </path>
+      ))}
+      <g fontFamily="ui-monospace,Menlo,monospace" fontSize="11" fill="#7f8fab"><text x="498" y="268">{tx(T('ATLANTIC', 'ATLÂNTICO', 'ATLÁNTICO'))}</text><text x="20" y="268">ANDES</text></g>
+    </svg>
+  )
+}
+
+/** A picture of the assistant bar with commands you could type. */
+export function AskMock({ lines }: { lines: Tri[] }) {
+  const tx = useTx()
+  const [i, setI] = useState(0)
+  useEffect(() => { const id = setInterval(() => setI((v) => (v + 1) % lines.length), 2600); return () => clearInterval(id) }, [lines.length])
+  return (
+    <>
+      <div style={{ border: '1px solid var(--acc)', background: 'rgba(5,9,18,.9)', padding: '16px 18px', boxShadow: '0 0 40px rgba(59,224,197,.18)', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <span style={{ color: 'var(--acc)', fontSize: 20 }}>✦</span>
+        <span key={i} style={{ fontSize: 18, color: '#e6eefc' }}>{tx(lines[i])}<span className="cursor" style={{ display: 'inline-block', width: 7, height: '1em', background: 'var(--acc)', marginLeft: 3, verticalAlign: -2 }} /></span>
+      </div>
+      <div className="opts">{lines.map((l, k) => <div key={k} className={`opt ${k === i ? 'on' : ''}`} style={{ cursor: 'default', fontSize: 13 }}>{tx(l)}</div>)}</div>
+    </>
+  )
+}

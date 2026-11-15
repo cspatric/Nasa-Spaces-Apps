@@ -14,6 +14,8 @@ interface Props {
   onCities: (v: boolean) => void
   buildings: boolean
   onBuildings: (v: boolean) => void
+  wind: boolean
+  onWindToggle: (v: boolean) => void
   exaggeration: number
   onExaggeration: (n: number) => void
   disaster: DisasterUi
@@ -37,7 +39,7 @@ function Toggle({ on, onChange, label, hint, color }: { on: boolean; onChange: (
 export default function LayerPanel(p: Props) {
   const { t } = useI18n()
   const on = OVERLAYS.filter((o) => p.overlays[o.id as OverlayId].on).length
-  const extras = [p.buildings, p.cities].filter(Boolean).length
+  const extras = [p.buildings, p.cities, p.wind].filter(Boolean).length
   return (
     <aside className={`panel left glass ${p.open ? '' : 'collapsed'}`} aria-hidden={!p.open}>
       <Accordion title={t('Base map')} summary={t(BASE_SHORT[p.baseId])} defaultOpen>
@@ -69,8 +71,9 @@ export default function LayerPanel(p: Props) {
         })}
       </Accordion>
 
-      <Accordion title={t('3D view')} summary={t('{n} of 2 on', { n: extras })}>
+      <Accordion title={t('3D view')} summary={t('{n} of 3 on', { n: extras })}>
         <Toggle on={p.buildings} onChange={p.onBuildings} label={t('3D buildings and streets')} hint={t('OpenStreetMap, visible close to cities')} color="#c3c9d0" />
+        <Toggle on={p.wind} onChange={p.onWindToggle} label={t('Air currents')} hint={t('Wind at 850 hPa over the Amazon (Open-Meteo)')} color="#9ff3e6" />
         <Toggle on={p.cities} onChange={p.onCities} label={t('City names')} color="#fff" />
         <div className="layer">
           <div className="row">
