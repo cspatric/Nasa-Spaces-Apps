@@ -179,6 +179,16 @@ src/
 
 React 19, TypeScript, Vite, MapLibre GL JS.
 
+## Logo
+
+The logo lives in `public/logo.png` (color) and `public/logo-white.png` (one color). The `Logo` component shows it in the map's top bar,
+the decks' header and the technical page; until the file exists it shows a drawn placeholder. To install or replace it:
+
+    python3 scripts/install-logo.py path/to/logo.png [path/to/logo-white.png]
+
+The script crops the empty margin, writes both files, makes the favicon (32 px), the app icons (192, 512) and the iOS icon, and
+points `index.html` at them.
+
 ## Secrets
 
 Tokens (Earthdata) live in environment variables and local files that
