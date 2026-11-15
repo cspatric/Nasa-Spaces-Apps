@@ -17,14 +17,33 @@ Requires Node 20.19+ or 22.12+. No API keys are needed for the map.
 
 ## Pages
 
+Both presentation pages are **decks**: one page at a time, no scrolling, a Continue button (also the right arrow, Space or
+Page Down; the left arrow goes back), progress ticks you can click, and a narrator's text on every page.
+
 | Route | What it is |
 |---|---|
-| `/` | Presentation of the project, as a scrolling story (what it is, NASA layers, forecast, risks, regions, disasters, honest limits). It ends by leading to the satellite page. English, Portuguese and Spanish. |
-| `/satelite` | The satellite story, "Dancing with the SARs" (`public/satelite.html`, a page of its own: radar echo, pixels, two dates, rain, the model). Its back link goes to `/` and it ends by leading to the map. |
+| `/` | Presentation of the project (12 pages): the problem, what was built, the data, the layers, time, the forecast, risks, ready-made regions, simulations, the honest wording. It ends by leading to the satellite deck. |
+| `/satelite` | The satellite deck "Dancing with the SARs" (11 pages): NISAR, its history, the radar echo, pixels, two dates and a change threshold, what to write on the map, rain and its lag, the model, the honest wording. It ends by leading to the map. |
 | `/mapa` | The observatory (3D map, layers, forecast, risks, simulations). |
 
+English, Portuguese and Spanish everywhere. The look is a mission-control screen: dark, thin lines, the Earth's limb,
+monospace labels, a clock in UTC, a figure on an "instrument screen" next to the narration.
+
+### Narration and voice
+Every step has a `narration` text written as if someone were explaining the problem (`src/pages/ProjectDeck.tsx` and
+`src/pages/SatelliteDeck.tsx`, one text per language). It is shown as if it were being spoken. To add a voice, register one
+handler (`src/lib/narration.ts`):
+
+```ts
+import { onNarration } from './lib/narration'
+onNarration(({ deck, step, index, lang, text }) => { /* speak `text` in `lang`, stop the previous audio */ })
+```
+
+The deck calls it whenever a step appears or the language changes; nothing speaks until a handler is registered. The text is
+also in the `data-narration` attribute of the narrator box.
+
 The site is a single-page app: a static host needs a rewrite of unknown paths to `index.html` (the Vite dev server and
-`vite preview` already do it). `public/satelite.html` is served as it is.
+`vite preview` already do it).
 
 ## What is in the base
 

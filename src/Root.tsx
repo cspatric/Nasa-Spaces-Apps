@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { usePath } from './router'
-import Story from './pages/Story'
+import ProjectDeck from './pages/ProjectDeck'
+import SatelliteDeck from './pages/SatelliteDeck'
 
 const App = lazy(() => import('./App.tsx'))
 
@@ -8,10 +9,11 @@ const App = lazy(() => import('./App.tsx'))
 export default function Root() {
   const path = usePath().replace(/\/+$/, '') || '/'
   const isMap = path === '/mapa'
+  const isDeck = !isMap
   useEffect(() => {
-    document.body.classList.toggle('is-app', isMap) // the map page fills the window; the story pages scroll
-    if (path === '/satelite') window.location.replace('/satelite.html') // the satellite story is a page of its own
-  }, [isMap, path])
+    document.body.classList.toggle('is-app', isMap) // the map and the decks fill the window and never scroll the page
+    document.body.classList.toggle('is-deck', isDeck)
+  }, [isMap, isDeck])
   if (isMap) {
     return (
       <Suspense fallback={<div className="loading">Loading…</div>}>
@@ -19,6 +21,6 @@ export default function Root() {
       </Suspense>
     )
   }
-  if (path === '/satelite') return null
-  return <Story />
+  if (path === '/satelite') return <SatelliteDeck />
+  return <ProjectDeck />
 }

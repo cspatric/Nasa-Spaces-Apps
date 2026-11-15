@@ -1,5 +1,4 @@
 import { createContext, useContext } from 'react'
-import { STORY_ES, STORY_PT } from './storyText'
 
 export type Lang = 'en' | 'pt' | 'es'
 export const LANGS: { id: Lang; label: string; locale: string; name: string }[] = [
@@ -184,7 +183,7 @@ const ES: Record<string, string> = {
   'Sentinel-2 cloudless © EOX · NASA GIBS, GPM IMERG · ASF NISAR and OPERA · AWS Terrain Tiles · © OpenStreetMap contributors · MapLibre': 'Sentinel-2 cloudless © EOX · NASA GIBS · ASF NISAR y OPERA · AWS Terrain Tiles · © colaboradores de OpenStreetMap · MapLibre',
 }
 
-const DICT: Record<Lang, Record<string, string>> = { en: {}, pt: { ...PT, ...STORY_PT }, es: { ...ES, ...STORY_ES } }
+const DICT: Record<Lang, Record<string, string>> = { en: {}, pt: PT, es: ES }
 
 export function translate(lang: Lang, key: string, vars?: Record<string, string | number>): string {
   let out = DICT[lang][key] ?? key
