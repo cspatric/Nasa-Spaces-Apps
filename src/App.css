@@ -331,3 +331,6 @@ input[type='range']::-moz-range-thumb { width: 12px; height: 12px; border-radius
 .ai-chips button { padding: 7px 12px; background: rgba(10, 16, 28, .9); border: 1px solid rgba(120, 170, 255, .22); color: #c9d6ec; font-size: 13px; transition: border-color .15s, color .15s; }
 .ai-chips button:hover { border-color: var(--accent); color: var(--accent); }
 .ai-foot { margin-top: 10px; display: flex; justify-content: space-between; font-size: 10.5px; color: #6f7f9c; letter-spacing: .08em; text-transform: uppercase; font-family: ui-monospace, Menlo, monospace; }
+
+.credits a { color: rgba(255, 255, 255, 0.7); pointer-events: auto; text-decoration: underline; }
+.credits a:hover { color: var(--accent); }

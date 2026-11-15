@@ -1,6 +1,7 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { LANGS, useI18n, type Lang } from '../lib/i18n'
-import { emitNarration } from '../lib/narration'
+import { emitNarration, onNarration } from '../lib/narration'
+import { voice } from '../lib/voice'
 import { sound } from '../lib/sound'
 import { navigate } from '../router'
 import Link from './Link'
@@ -90,9 +91,14 @@ export default function Deck({ name, deck, steps, finish, skip, back }: Props) {
     return () => window.removeEventListener('keydown', key)
   })
 
+  const muted = useSyncExternalStore(voice.subscribe, voice.isMuted)
+  useEffect(() => {
+    const off = onNarration(voice.handle)
+    return () => { off(); voice.stop() }
+  }, [])
   useEffect(() => {
     emitNarration({ deck, step: step.id, index: i, lang, text: step.narration[lang] })
-  }, [deck, step, i, lang])
+  }, [deck, step, i, lang, muted]) // `muted` too: turning the voice back on speaks the current page again
 
   return (
     <div className="deck">
@@ -102,6 +108,10 @@ export default function Deck({ name, deck, steps, finish, skip, back }: Props) {
         <div className="id"><b>SARIS</b><span>{name}</span></div>
         <div className="rt">
           <Clock />
+          <button className={`dk-voice ${muted ? '' : 'on'}`} onClick={() => voice.setMuted(!muted)} aria-pressed={!muted}
+            title={lang === 'en' ? (muted ? 'Turn the narrator on' : 'Mute the narrator') : 'Voice: English only'}>
+            {muted ? '♪ off' : '♪ voice'}
+          </button>
           <div className="dk-lang" role="group" aria-label="Language">
             {LANGS.map((l) => <button key={l.id} className={lang === l.id ? 'on' : ''} title={l.name} onClick={() => setLang(l.id)}>{l.label}</button>)}
           </div>

@@ -16,6 +16,8 @@
 .deck .dk-hud .id { display: flex; align-items: center; gap: 14px; }
 .deck .dk-hud .id b { color: var(--acc); font-weight: 700; }
 .deck .dk-hud .rt { display: flex; align-items: center; gap: 10px; }
+.deck .dk-voice { padding: 5px 9px; background: none; border: 1px solid var(--line2); color: var(--mut); cursor: pointer; font: inherit; }
+.deck .dk-voice.on { color: var(--acc); border-color: var(--acc); }
 .deck .dk-lang { display: flex; border: 1px solid var(--line2); }
 .deck .dk-lang button { padding: 5px 9px; background: none; border: 0; color: var(--mut); cursor: pointer; font: inherit; }
 .deck .dk-lang button.on { color: #04121a; background: var(--acc); }

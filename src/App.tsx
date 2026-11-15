@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import type { Area, CameraCommand, FlyRequest, LonLat, OverlayState, Pin } from './lib/types'
 import Assistant from './components/Assistant'
+import Link from './components/Link'
 import Hud from './components/Hud'
 import InspectorPanel, { type Tab } from './components/InspectorPanel'
 import LayerPanel from './components/LayerPanel'
@@ -356,6 +357,7 @@ export default function App() {
       />
       <div className="credits">
         {t('Sentinel-2 cloudless © EOX · NASA GIBS, GPM IMERG · ASF NISAR and OPERA · Open-Meteo · AWS Terrain Tiles · © OpenStreetMap contributors · MapLibre')}
+        {' · '}<Link to="/tecnico">{t('Data and methods')}</Link>
       </div>
     </div>
   )

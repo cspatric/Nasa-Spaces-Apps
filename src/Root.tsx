@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import { usePath } from './router'
 import ProjectDeck from './pages/ProjectDeck'
 import SatelliteDeck from './pages/SatelliteDeck'
+import TechnicalPage from './pages/TechnicalPage'
 
 const App = lazy(() => import('./App.tsx'))
 
@@ -9,7 +10,8 @@ const App = lazy(() => import('./App.tsx'))
 export default function Root() {
   const path = usePath().replace(/\/+$/, '') || '/'
   const isMap = path === '/mapa'
-  const isDeck = !isMap
+  const isTech = path === '/tecnico' // a reading page: it scrolls, unlike the map and the decks
+  const isDeck = !isMap && !isTech
   useEffect(() => {
     document.body.classList.toggle('is-app', isMap) // the map and the decks fill the window and never scroll the page
     document.body.classList.toggle('is-deck', isDeck)
@@ -21,6 +23,7 @@ export default function Root() {
       </Suspense>
     )
   }
+  if (isTech) return <TechnicalPage />
   if (path === '/satelite') return <SatelliteDeck />
   return <ProjectDeck />
 }

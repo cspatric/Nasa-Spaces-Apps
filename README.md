@@ -24,6 +24,7 @@ Page Down; the left arrow goes back), progress ticks you can click, and a narrat
 |---|---|
 | `/` | Presentation of the project (12 pages): the problem, what was built, the data, the layers, time, the forecast, risks, ready-made regions, simulations, the honest wording. It ends by leading to the satellite deck. |
 | `/satelite` | The satellite deck "Dancing with the SARs" (11 pages): NISAR, its history, the radar echo, pixels, two dates and a change threshold, what to write on the map, rain and its lag, the model, the honest wording. It ends by leading to the map. |
+| `/tecnico` | Data and methods: the technical record. Headline numbers, every data product and how it is read, the cleaning pipeline, the forecast and risk models, the land-cover test, the limits we state ourselves, and sources. Linked from the map's footer. |
 | `/mapa` | The observatory (3D map, layers, forecast, risks, simulations, air currents, AI bar). Both decks end with an "Open the map" button that lands here. |
 
 ### On the map
@@ -50,6 +51,13 @@ also in the `data-narration` attribute of the narrator box.
 
 The site is a single-page app: a static host needs a rewrite of unknown paths to `index.html` (the Vite dev server and
 `vite preview` already do it).
+
+
+**English voice (generated).** Every narration has an English recording in `public/audio/en/<deck>-<step>.mp3`, made with Cartesia text to speech (voice Clive, model `sonic-3`). The decks play it through `lib/voice.ts` (registered on `onNarration`): it starts with each page, stops when you leave it, a `♪ voice` button mutes it (remembered), and the first click starts it if the browser blocked autoplay. Portuguese and Spanish keep the text only. To regenerate after editing a narration (only changed texts are synthesised again, tracked in `manifest.json`):
+
+    CARTESIA_API_KEY=... node scripts/narrate.mjs          # --force redoes all
+
+The key is read from the environment and never stored in the repository.
 
 ## What is in the base
 
