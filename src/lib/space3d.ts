@@ -171,7 +171,7 @@ export interface Stage {
 export interface StageOptions { fov?: number; near?: number; far?: number; logDepth?: boolean; lights?: boolean; background?: number; maxDpr?: number }
 
 export function createStage(el: HTMLElement, o: StageOptions = {}): Stage {
-  const { fov = 34, near = 0.1, far = 400, logDepth = false, lights = true, background, maxDpr = 2 } = o
+  const { fov = 34, near = 0.1, far = 400, logDepth = false, lights = true, background, maxDpr = 1.5 } = o
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: background === undefined, powerPreference: 'high-performance', logarithmicDepthBuffer: logDepth })
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, maxDpr))
   renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -201,20 +201,32 @@ export function createStage(el: HTMLElement, o: StageOptions = {}): Stage {
 
   let fn: (t: number, dt: number) => void = () => {}
   let raf = 0, last = performance.now(); const t0 = last
+  // Dynamic resolution: if frames take too long the picture is drawn with fewer pixels (down to 0.75) until it keeps up,
+  // and it climbs back when there is room. A slow computer gets a softer picture instead of a stuttering one.
+  const maxRatio = Math.min(devicePixelRatio || 1, maxDpr)
+  let ratio = maxRatio, slow = 0, fast = 0
+  let visible = true
   const loop = (now: number) => {
     raf = requestAnimationFrame(loop)
-    const dt = Math.min((now - last) / 1000, 0.05); last = now
+    if (!visible) { last = now; return }
+    const raw = (now - last) / 1000
+    const dt = Math.min(raw, 0.05); last = now
+    if (raw > 0.026) { slow++; fast = 0 } else if (raw < 0.019) { fast++; slow = 0 } else { slow = 0; fast = 0 }
+    if (slow >= 8 && ratio > 0.75) { ratio = Math.max(0.75, ratio - 0.25); renderer.setPixelRatio(ratio); size(); slow = 0 }
+    else if (fast >= 240 && ratio < maxRatio) { ratio = Math.min(maxRatio, ratio + 0.25); renderer.setPixelRatio(ratio); size(); fast = 0 }
     pointer.x += (target.x - pointer.x) * Math.min(1, dt * 3); pointer.y += (target.y - pointer.y) * Math.min(1, dt * 3)
     fn((now - t0) / 1000, dt)
     renderer.render(scene, camera)
   }
   raf = requestAnimationFrame(loop)
+  // nothing to draw while the figure is scrolled away or the tab is hidden
+  const io = new IntersectionObserver((e) => { visible = e[e.length - 1].isIntersecting }); io.observe(el)
 
   return {
     scene, camera, pointer,
     frame: (f) => { fn = f },
     dispose() {
-      cancelAnimationFrame(raf); ro.disconnect()
+      cancelAnimationFrame(raf); ro.disconnect(); io.disconnect()
       window.removeEventListener('pointermove', onMove); el.removeEventListener('pointerleave', onLeave)
       scene.traverse((o) => {
         const m = o as THREE.Mesh

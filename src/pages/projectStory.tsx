@@ -107,6 +107,7 @@ export const STORY_NARRATION: Record<string, Step['narration']> = {
 }
 
 const SAT_PA: Record<string, { p: Step['problem']; a: Step['answer'] }> = {
+  honest: { p: T('We find out about change only after the damage', 'Só sabemos da mudança depois do dano', 'Solo nos enteramos del cambio tras el daño'), a: T('See it early, through the clouds, with honest limits', 'Enxergar cedo, através das nuvens, com limites honestos', 'Verlo a tiempo, a través de las nubes, con límites honestos') },
   rain: { p: T('Rain alone can fake a change', 'A chuva sozinha pode fingir uma mudança', 'La lluvia sola puede fingir un cambio'), a: T('Compare the signal with the rain, and its lag', 'Comparar o sinal com a chuva e a sua defasagem', 'Comparar la señal con la lluvia y su desfase') },
   model: { p: T('A model nobody tested proves nothing', 'Um modelo que ninguém testou não prova nada', 'Un modelo que nadie probó no prueba nada'), a: T('It only counts if it beats the simple rule', 'Só vale se vencer a regra simples', 'Solo cuenta si supera la regla simple') },
 }

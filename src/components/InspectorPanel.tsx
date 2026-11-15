@@ -1,12 +1,13 @@
-import { useState } from 'react'
-import type { Area, LonLat, Pin } from '../lib/types'
+import { useMemo, useState } from 'react'
+import type { LonLat, Pin } from '../lib/types'
 import { useI18n } from '../lib/i18n'
-import ForecastChart from './ForecastChart'
-import { progressOf, type ForecastResult, type ForecastState, type RiskResult } from '../lib/forecast'
+import { ForecastTab } from './ForecastView'
+import { LEVEL, PHASE } from './forecastLabels'
+import { progressOf, type ForecastResult, type ForecastState } from '../lib/forecast'
 import type { RegionInfo } from '../lib/regions'
 import SeriesChart from './SeriesChart'
-import type { LiveState, Sensor } from '../lib/live'
-import type { RainState } from '../lib/rain'
+import AnalysisBox from './AnalysisBox'
+import type { AnalysisState, Range } from '../lib/analysis'
 import { buildSeries, mainSeries, valueAt, windowOf, type Series } from '../lib/series'
 
 export type Tab = 'data' | 'forecast' | 'regions'
@@ -15,9 +16,13 @@ interface Props {
   open: boolean
   tab: Tab
   onTab: (t: Tab) => void
-  live: Record<Sensor, LiveState>
-  rain: RainState
-  /** Forecast of the selected point or area. */
+  /** The analysis of the selected place over the chosen period. */
+  analysis: AnalysisState
+  /** Data is being processed (analysis or forecast): the place cannot be changed. */
+  busy: boolean
+  onAnalyze: (r: Range) => void
+  onCancel: () => void
+  /** Forecast of the selected point. */
   forecast: ForecastState
   onForecast: () => void
   /** The ready-made region being shown, if any. */
@@ -28,10 +33,6 @@ interface Props {
   onFcYear: (y: number) => void
   nowMs: number
   inspected: LonLat | null
-  area: Area | null
-  areaKm: { w: number; h: number; windowM: number } | null
-  selectMode: boolean
-  onSelectMode: (v: boolean) => void
   pins: Pin[]
   selectedPinId: string | null
   onSavePin: () => void
@@ -77,123 +78,6 @@ function insights(radar: Series[], rain: Series, nowMs: number, t: Translate, lo
   return out
 }
 
-const PHASE: Record<string, string> = {
-  'radar-search': 'Searching radar scenes…', radar: 'Reading radar history', 'rain-monthly': 'Reading monthly rain',
-  'rain-daily': 'Reading recent rain', model: 'Training the model…',
-}
-const RISK_NAME: Record<string, string> = { vegetation_loss: 'Vegetation loss', flood: 'Flood', drought_fire: 'Drought and fire', unusual_change: 'Unusual change' }
-const LEVEL: Record<string, string> = { low: 'Low', moderate: 'Moderate', high: 'High', 'n/a': 'Not applicable' }
-const COVER: Record<string, string> = { forest: 'Forest', vegetation: 'Other vegetation', urban: 'City', water: 'Open water' }
-
-function RiskBlock({ risk }: { risk: RiskResult }) {
-  const { t } = useI18n()
-  if (!risk.available) return <p className="fine">{t('Risks need both polarizations and at least 30 months of data.')}</p>
-  const cover = risk.landCover
-  return (
-    <div className="risk">
-      <div className="risk-head">
-        <span className={`chip lvl-${risk.overall.level}`}>{t(LEVEL[risk.overall.level])}</span>
-        <small>{risk.overall.main ? t(RISK_NAME[risk.overall.main]) : ''}</small>
-      </div>
-      {cover && <small className="fine-row">{t('Land cover')}: {t(COVER[cover.class] ?? cover.class)} ({Math.round(cover.confidence * 100)}%)</small>}
-      <ul className="risk-list">
-        {risk.risks.map((r) => (
-          <li key={r.id} className={r.applicable ? '' : 'na'}>
-            <div className="head">
-              <strong>{t(RISK_NAME[r.id] ?? r.id)}</strong>
-              <span className={`chip lvl-${r.level.replace('/', '')}`}>{t(LEVEL[r.level])}</span>
-            </div>
-            {r.applicable && <div className="meter"><i className={`lvl-${r.level}`} style={{ width: `${Math.max(4, Math.round(r.score * 100))}%` }} /></div>}
-            {r.applicable && r.evidence.slice(0, 2).map((e) => <small className="fine-row" key={e.text}>{t(e.text, e.vars)}</small>)}
-            {r.applicable && r.place && <small className="fine-row place">{t('Riskiest place')}: {r.place}</small>}
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-/** The charts of a finished forecast: one card per series, with its yearly values. */
-function Charts({ r }: { r: ForecastResult }) {
-  const { t, locale } = useI18n()
-  const co = r.backscatter.co
-  const cross = r.backscatter.cross
-  const parts = [
-    co && { key: 'co', title: `${t('Radar')} ${co.pol ?? ''} (dB)`, s: co, color: '#5eead4', digits: 1 },
-    cross && { key: 'cross', title: `${t('Radar')} ${cross.pol ?? ''} (dB)`, s: cross, color: '#fb923c', digits: 1 },
-    r.rain && { key: 'rain', title: t('Rain (mm/month)'), s: r.rain, color: '#818cf8', digits: 0 },
-  ].filter(Boolean) as { key: string; title: string; s: NonNullable<typeof co>; color: string; digits: number }[]
-  return (
-    <>
-      <ul className="series forecast">
-        {parts.map(({ key, title, s, color, digits }) => {
-          const sk = Math.round(s.backtest.skill * 100)
-          return (
-            <li key={key}>
-              <div className="head">
-                <strong>{title}</strong>
-                <span className={`vals ${s.reliable ? '' : 'off'}`}>{s.reliable ? t('reliable') : t('weak')}</span>
-              </div>
-              <ForecastChart history={s.history} forecast={s.forecast} color={color} digits={digits} label={title} />
-              <small className="fine-row">
-                {t('Model')}: {s.model} · {t('error')} {s.backtest.mae.toFixed(digits === 0 ? 0 : 2)} · {sk >= 0 ? t('{n}% better than last year', { n: sk }) : t('{n}% worse than last year', { n: -sk })}
-                {s.trendPerDecade !== null && digits !== 0 && ` · ${s.trendPerDecade >= 0 ? '+' : '−'}${Math.abs(s.trendPerDecade).toFixed(2)}/${t('decade')}`}
-              </small>
-              <div className="yearly">
-                {s.yearly.filter((y) => y.months >= 12).map((y) => (
-                  <span key={y.year}><em>{y.year}</em>{digits === 0 ? `${Math.round(y.total)} mm` : y.mean.toFixed(1)}</span>
-                ))}
-              </div>
-            </li>
-          )
-        })}
-      </ul>
-      <p className="fine">{t('{a} radar scenes, {b} months of rain. Band: 80 %. Forecast until {date}.', { a: r.meta.radarScenes, b: r.meta.rainMonths, date: new Date(r.until + '-01').toLocaleDateString(locale, { month: 'short', year: 'numeric' }) })}</p>
-    </>
-  )
-}
-
-/** Forecast tab: what to do when there is nothing yet, otherwise risks first, then the charts. */
-function ForecastTab({ shown, hasTarget, regionName, fail }: { shown: ForecastState; hasTarget: boolean; regionName: string | null; fail: (m?: string) => string | undefined }) {
-  const { t } = useI18n()
-  const r = shown.result
-  if (!r) {
-    if (shown.status === 'error') return <div className="err">{fail(shown.message)}</div>
-    if (shown.status === 'loading') {
-      return (
-        <div className="working">
-          <span className="spin" />
-          <strong>{t(PHASE[shown.phase] ?? 'Working…')}</strong>
-          <small>{t('The first forecast of a place reads years of satellite scenes; the next ones are instant.')}</small>
-        </div>
-      )
-    }
-    return <p className="empty">{hasTarget ? t('Learns from this place since 2016 and projects radar and rain to 2030. The button below starts it.') : t('Select a point or an area on the map, or open a ready-made region.')}</p>
-  }
-  return (
-    <>
-      {regionName && <h4 className="sub">{regionName}</h4>}
-      {r.risk && <RiskBlock risk={r.risk} />}
-      {r.samples && (
-        <>
-          <h4 className="sub">{t('Sample places')}</h4>
-          <ul className="samples">
-            {r.samples.map((s) => (
-              <li key={s.name}>
-                <span>{s.name}</span>
-                {s.main && <small>{t(RISK_NAME[s.main] ?? s.main)}</small>}
-                {s.level && <span className={`chip lvl-${s.level}`}>{t(LEVEL[s.level])}</span>}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-      <Charts r={r} />
-      {r.notes.slice(0, 2).map((n) => <p className="fine" key={n}>{t(n)}</p>)}
-    </>
-  )
-}
-
 export default function InspectorPanel(p: Props) {
   const { t, locale } = useI18n()
   const [pinsOpen, setPinsOpen] = useState(false)
@@ -201,9 +85,12 @@ export default function InspectorPanel(p: Props) {
     const url = m?.match(/^Backend not reachable at (\S+)\./)?.[1]
     return url ? t('Backend not reachable at {url}. Start it with: uv run asf-api', { url }) : m
   }
-  const radar = [...mainSeries(buildSeries(p.live.OPERA.rows)), ...mainSeries(buildSeries(p.live.NISAR.rows))]
-  const notes = p.inspected ? insights(radar, p.rain.series, p.nowMs, t, locale) : []
-  const regionState: ForecastState | null = p.region ? { status: 'done', phase: '', done: 0, total: 0, result: p.region.data } : null
+  const rainState = p.analysis.rain
+  // Grouping thousands of rows and the insights are computed when the data (or the date, or the language) changes,
+  // not on every render of the panel.
+  const radar = useMemo(() => mainSeries(buildSeries(p.analysis.radar.rows)), [p.analysis.radar.rows])
+  const notes = useMemo(() => (p.inspected ? insights(radar, rainState.series, p.nowMs, t, locale) : []), [p.inspected, radar, rainState.series, p.nowMs, t, locale])
+  const regionState: ForecastState | null = p.region ? { status: 'done', phase: '', done: 0, total: 0, result: p.region.data, outcome: null } : null
   const shown = regionState ?? p.forecast
   const hasTarget = p.inspected !== null || p.region !== null
   const loading = p.forecast.status === 'loading' && !p.region
@@ -225,33 +112,27 @@ export default function InspectorPanel(p: Props) {
       <div className="tab-body">
         {p.tab === 'data' && (
           <>
-            <div className="segmented two" role="group" aria-label={t('Selection mode')}>
-              <button className={!p.selectMode ? 'on' : ''} onClick={() => p.onSelectMode(false)}>{t('Point')}</button>
-              <button className={p.selectMode ? 'on' : ''} onClick={() => p.onSelectMode(true)}>{t('Area')}</button>
-            </div>
             {p.inspected ? (
               <>
                 <div className="point">
-                  <strong>
-                    {p.areaKm ? `${t('Area')} ${p.areaKm.w.toFixed(1)} × ${p.areaKm.h.toFixed(1)} km` : `${fmt(p.inspected.lat, 3)}°, ${fmt(p.inspected.lon, 3)}°`}
-                  </strong>
+                  <strong>{fmt(p.inspected.lat, 3)}°, {fmt(p.inspected.lon, 3)}°</strong>
                   <button className="btn primary" onClick={p.onSavePin}>{t('Save')}</button>
-                  <button className="btn ghost" onClick={p.onClear}>{t('Clear')}</button>
+                  <button className="btn ghost" disabled={p.busy} title={p.busy ? t('Locked while data is being processed') : undefined} onClick={p.onClear}>{t('Clear')}</button>
                 </div>
-                {p.areaKm && <small className="fine-row">{t('Centered at {lat}, {lon}. Radar window {m} m; rain is the IMERG cell of the center.', { lat: fmt(p.inspected.lat, 3), lon: fmt(p.inspected.lon, 3), m: Math.round(p.areaKm.windowM) })}</small>}
+                <AnalysisBox state={p.analysis} busy={p.busy} onRun={p.onAnalyze} onCancel={p.onCancel} />
                 <ul className="series">
-                  {(['NISAR', 'OPERA'] as const).map((sensor) => {
-                    const st = p.live[sensor]
+                  {(() => {
+                    const st = p.analysis.radar
                     if (st.status === 'idle') return null
-                    const band = sensor === 'NISAR' ? 'L-band' : 'C-band'
-                    const main = mainSeries(buildSeries(st.rows))
+                    const sensor = st.dataset
+                    const main = radar
                     const vals = main.map((s) => ({ pol: s.pol, v: valueAt(s, p.nowMs) }))
                     const any = vals.some((x) => x.v)
                     const ld = st.status === 'loading'
                     return (
-                      <li key={sensor}>
+                      <li>
                         <div className="head">
-                          <span><strong>{sensor}</strong><small>{t(band)}</small></span>
+                          <span><strong>{sensor ?? t('Radar')}</strong>{sensor && <small>{t(sensor === 'NISAR' ? 'L-band' : 'C-band')}</small>}</span>
                           <span className={`vals ${any ? '' : 'off'}`}>
                             {any
                               ? vals.map((x) => (x.v ? `${x.pol} ${x.v.db.toFixed(1)}` : null)).filter(Boolean).join(' · ') + ' dB'
@@ -264,32 +145,29 @@ export default function InspectorPanel(p: Props) {
                             <small>{st.total ? t(st.cached ? '{done} of {total} scenes, {cached} cached' : '{done} of {total} scenes', { done: st.done, total: st.total, cached: st.cached }) : t('Searching ASF…')}</small>
                           </div>
                         )}
-                        {st.status === 'error' && <div className="err">{fail(st.message)}</div>}
-                        {st.status === 'done' && st.rows.length === 0 && <div className="note-muted">{t('No scenes near this date.')}</div>}
-                        {st.failed > 0 && <div className="note-muted">{t('{n} scene(s) could not be read.', { n: st.failed })}</div>}
+                        {ld && st.failed > 0 && <div className="note-muted">{t('{n} scene(s) could not be read.', { n: st.failed })}</div>}
                         {main.length > 0 && <SeriesChart series={main} nowMs={p.nowMs} />}
                       </li>
                     )
-                  })}
-                  {p.rain.status !== 'idle' && (() => {
-                    const v = valueAt(p.rain.series, p.nowMs, 1)
-                    const ld = p.rain.status === 'loading'
+                  })()}
+                  {rainState.status !== 'idle' && rainState.status !== 'skipped' && (() => {
+                    const v = valueAt(rainState.series, p.nowMs, 1)
+                    const ld = rainState.status === 'loading'
                     return (
                       <li title={t('NASA GPM IMERG daily total, 0.1 degree cell')}>
                         <div className="head">
                           <span><strong>{t('Rain')}</strong><small>IMERG</small></span>
                           <span className={`vals ${v ? '' : 'off'}`}>
-                            {v ? `${v.db.toFixed(1)} mm/day` : ld ? t('reading…') : p.rain.status === 'error' ? t('unavailable') : t('no data')}
+                            {v ? `${v.db.toFixed(1)} mm/day` : ld ? t('reading…') : rainState.status === 'error' ? t('unavailable') : t('no data')}
                           </span>
                         </div>
                         {ld && (
                           <div className="progress">
-                            <div className="bar"><i style={{ width: `${p.rain.total ? (100 * p.rain.done) / p.rain.total : 4}%` }} /></div>
-                            <small>{p.rain.total ? t(p.rain.cached ? '{done} of {total} days, {cached} cached' : '{done} of {total} days', { done: p.rain.done, total: p.rain.total, cached: p.rain.cached }) : t('Searching…')}</small>
+                            <div className="bar"><i style={{ width: `${rainState.total ? (100 * rainState.done) / rainState.total : 4}%` }} /></div>
+                            <small>{rainState.total ? t(rainState.cached ? '{done} of {total} days, {cached} cached' : '{done} of {total} days', { done: rainState.done, total: rainState.total, cached: rainState.cached }) : t('Searching…')}</small>
                           </div>
                         )}
-                        {p.rain.status === 'error' && <div className="err">{fail(p.rain.message)}</div>}
-                        {p.rain.series.t.length > 1 && <SeriesChart series={[p.rain.series]} nowMs={p.nowMs} />}
+                        {rainState.series.t.length > 1 && <SeriesChart series={[rainState.series]} nowMs={p.nowMs} />}
                       </li>
                     )
                   })()}
@@ -302,7 +180,7 @@ export default function InspectorPanel(p: Props) {
                 )}
               </>
             ) : (
-              <p className="empty">{t(p.selectMode ? 'Drag a rectangle on the map.' : 'Click the map or search a city.')}</p>
+              <p className="empty">{t('Click the map or search a city.')}</p>
             )}
             {p.pins.length > 0 && (
               <>
@@ -334,7 +212,7 @@ export default function InspectorPanel(p: Props) {
               {p.regions.length === 0 && <li className="none">{t('The backend has no regions yet.')}</li>}
               {p.regions.map((r) => (
                 <li key={r.id} className={p.region?.info.id === r.id ? 'sel' : ''}>
-                  <button disabled={!r.ready} onClick={() => p.onRegion(p.region?.info.id === r.id ? null : r.id)}>
+                  <button disabled={!r.ready || p.busy} title={p.busy ? t('Locked while data is being processed') : undefined} onClick={() => p.onRegion(p.region?.info.id === r.id ? null : r.id)}>
                     <strong>{r.name}</strong>
                     <small>{r.ready ? t('{n} sample places', { n: r.samples }) : t('being prepared')}</small>
                     {r.ready && r.overall && <span className={`chip lvl-${r.overall.level}`}>{t(LEVEL[r.overall.level])}</span>}
@@ -357,6 +235,7 @@ export default function InspectorPanel(p: Props) {
             <div className="pin-progress">
               <div className="pin-row"><span className="pin-label">{t(PHASE[p.forecast.phase] ?? 'Working…')}{p.forecast.total > 1 ? ` ${p.forecast.done}/${p.forecast.total}` : ''}</span><strong>{pct}%</strong></div>
               <div className="bar big"><i style={{ width: `${Math.max(3, pct)}%` }} /></div>
+              <button className="btn ghost" onClick={p.onCancel}>{t('Cancel')}</button>
             </div>
           ) : (
             <button className="btn primary wide" onClick={() => { p.onForecast(); p.onTab('forecast') }}>

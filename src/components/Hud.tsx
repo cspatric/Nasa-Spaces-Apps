@@ -11,18 +11,15 @@ interface Props {
   onZoomOut: () => void
   onNorth: () => void
   onTilt: () => void
-  selecting: boolean
-  onSelect: () => void
 }
 
 const fmtHeight = (m: number) => (m >= 10_000 ? `${Math.round(m / 1000).toLocaleString('en-US')} km` : `${Math.round(m).toLocaleString('en-US')} m`)
 
-export default function Hud({ active, blocked, scenario, wind, onZoomIn, onZoomOut, onNorth, onTilt, selecting, onSelect }: Props) {
+export default function Hud({ active, blocked, scenario, wind, onZoomIn, onZoomOut, onNorth, onTilt }: Props) {
   const h = useHover()
   const { t } = useI18n()
   return (
     <div className="hud">
-      {selecting && <div className="select-hint glass">{t('Drag a rectangle on the map. Esc cancels.')}</div>}
       {h.loading && <div className="loading-pill glass"><span className="spin" />{t('Loading imagery…')}</div>}
       {wind && <div className="legend glass"><span><i style={{ background: '#9ff3e6' }} />{t('Air currents')} · 850 hPa · {t(wind === 'live' ? 'live' : 'typical trade winds')}</span></div>}
       {active.length > 0 && (
@@ -40,9 +37,6 @@ export default function Hud({ active, blocked, scenario, wind, onZoomIn, onZoomO
         <div className="zoom">
           <button onClick={onZoomIn} aria-label={t('Zoom in')}>+</button>
           <button onClick={onZoomOut} aria-label={t('Zoom out')}>−</button>
-          <button className={`pick ${selecting ? 'on' : ''}`} onClick={onSelect} aria-pressed={selecting} aria-label={t('Select area')} title={t('Select area (or hold Shift and drag)')}>
-            <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><rect x="2" y="3" width="12" height="10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 2" /></svg>
-          </button>
           <button onClick={onNorth} aria-label={t('North up')} title={t('North up')}>N</button>
           <button className={`tilt ${h.tilted ? 'on' : ''}`} onClick={onTilt} aria-label={t('Toggle 3D tilt')} title={t('Tilt the camera for a 3D view')}>3D</button>
         </div>

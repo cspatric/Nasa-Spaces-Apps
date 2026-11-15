@@ -112,7 +112,7 @@ export function interpret(input: string, ctx: Ctx): Reply {
     } else if (ctx.hasPoint) {
       actions.push({ type: 'forecast' })
       notes.push(say(lang, 'Running the forecast for the selected place', 'Gerando a previsão do lugar selecionado', 'Generando el pronóstico del lugar seleccionado'))
-    } else notes.push(say(lang, 'Select a point or an area on the map first, or name a region (Amazon, São Paulo, Rio Grande do Sul)', 'Selecione um ponto ou uma área no mapa primeiro, ou cite uma região (Amazônia, São Paulo, Rio Grande do Sul)', 'Selecciona primero un punto o un área en el mapa, o nombra una región (Amazonas, São Paulo, Rio Grande do Sul)'))
+    } else notes.push(say(lang, 'Select a point on the map first, or name a region (Amazon, São Paulo, Rio Grande do Sul)', 'Selecione um ponto no mapa primeiro, ou cite uma região (Amazônia, São Paulo, Rio Grande do Sul)', 'Selecciona primero un punto en el mapa, o nombra una región (Amazonas, São Paulo, Rio Grande do Sul)'))
   }
 
   // layers

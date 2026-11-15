@@ -6,12 +6,10 @@ export interface FlyRequest { tick: number; lon: number; lat: number; zoom: numb
 export interface CameraCommand { tick: number; type: 'zoomIn' | 'zoomOut' | 'north' | 'tilt' }
 export type OverlayState = Record<OverlayId, { on: boolean; opacity: number }>
 
-/** A rectangle on the map, in degrees. */
-export interface Area {
+/** The bounds of a ready-made region, in degrees, drawn as an outline on the map. */
+export interface Outline {
   west: number
   south: number
   east: number
   north: number
-  /** The four ground corners of a rectangle drawn on a tilted map (it is not a lon/lat rectangle there). */
-  corners?: [number, number][]
 }

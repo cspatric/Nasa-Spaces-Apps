@@ -1,6 +1,6 @@
 :root {
   --bg: #07090c;
-  --surface: rgba(13, 17, 22, 0.8);
+  --surface: rgba(13, 17, 22, 0.93); /* near opaque: a blur behind every panel is recomputed on each map frame */
   --surface-solid: #11161c;
   --fill: rgba(255, 255, 255, 0.05);
   --fill-hover: rgba(255, 255, 255, 0.09);

@@ -91,20 +91,60 @@ function noiseTexture(kind: 'moon' | 'milky') {
   return t
 }
 
+/**
+ * The cloud layer. The pattern (5 octaves of 3D noise) used to be computed for every pixel of the planet on every frame,
+ * which is what made weak graphics cards stutter. Now it is computed once into a small texture when the scene opens, and
+ * the shader only reads it (and slides it slowly, so the clouds drift).
+ */
+let cloudMap: THREE.CanvasTexture | null = null
+function bakeClouds() {
+  if (cloudMap) return cloudMap
+  const W = 512, H = 256
+  const hash = (x: number, y: number, z: number) => {
+    let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(z, 1274126177)) | 0
+    h = Math.imul(h ^ (h >>> 13), 1274126177)
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296
+  }
+  const vn = (x: number, y: number, z: number) => {
+    const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z)
+    let fx = x - ix, fy = y - iy, fz = z - iz
+    fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy); fz = fz * fz * (3 - 2 * fz)
+    const l = (a: number, b: number, t: number) => a + (b - a) * t
+    return l(
+      l(l(hash(ix, iy, iz), hash(ix + 1, iy, iz), fx), l(hash(ix, iy + 1, iz), hash(ix + 1, iy + 1, iz), fx), fy),
+      l(l(hash(ix, iy, iz + 1), hash(ix + 1, iy, iz + 1), fx), l(hash(ix, iy + 1, iz + 1), hash(ix + 1, iy + 1, iz + 1), fx), fy), fz)
+  }
+  const fbm = (x: number, y: number, z: number) => { let sum = 0, amp = 0.5; for (let i = 0; i < 5; i++) { sum += amp * vn(x, y, z); x *= 2.03; y *= 2.03; z *= 2.03; amp *= 0.5 } return sum }
+  const smooth = (e0: number, e1: number, x: number) => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t) }
+  const c = document.createElement('canvas'); c.width = W; c.height = H
+  const g = c.getContext('2d')!
+  const img = g.createImageData(W, H)
+  for (let j = 0; j < H; j++) {
+    const lat = (j / (H - 1) - 0.5) * Math.PI, cl = Math.cos(lat), sl = Math.sin(lat)
+    for (let i = 0; i < W; i++) {
+      const lon = (i / W - 0.5) * 2 * Math.PI
+      const v = smooth(0.5, 0.78, fbm(cl * Math.cos(lon) * 3.2, sl * 3.2, cl * Math.sin(lon) * 3.2))
+      const k = (j * W + i) * 4
+      img.data[k] = Math.round(v * 255); img.data[k + 3] = 255
+    }
+  }
+  g.putImageData(img, 0, 0)
+  const t = new THREE.CanvasTexture(c)
+  t.wrapS = THREE.RepeatWrapping; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true
+  cloudMap = t
+  return t
+}
+
 function cloudMaterial() {
   return new THREE.ShaderMaterial({
     transparent: true, depthWrite: false,
-    uniforms: { t: { value: 0 }, sun: { value: SUN.clone() } },
+    uniforms: { t: { value: 0 }, sun: { value: SUN.clone() }, map: { value: bakeClouds() } },
     vertexShader: 'varying vec3 p; varying vec3 n; void main(){ p = position; n = normalize(mat3(modelMatrix)*normal); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }',
-    fragmentShader: `varying vec3 p; varying vec3 n; uniform float t; uniform vec3 sun;
-      float h(vec3 q){ return fract(sin(dot(q, vec3(127.1,311.7,74.7)))*43758.5453); }
-      float vn(vec3 q){ vec3 i=floor(q), f=fract(q); f=f*f*(3.-2.*f);
-        return mix(mix(mix(h(i),h(i+vec3(1,0,0)),f.x),mix(h(i+vec3(0,1,0)),h(i+vec3(1,1,0)),f.x),f.y),
-                   mix(mix(h(i+vec3(0,0,1)),h(i+vec3(1,0,1)),f.x),mix(h(i+vec3(0,1,1)),h(i+vec3(1,1,1)),f.x),f.y),f.z); }
-      float fbm(vec3 q){ float s=0., a=.5; for(int i=0;i<5;i++){ s+=a*vn(q); q*=2.03; a*=.5; } return s; }
+    fragmentShader: `varying vec3 p; varying vec3 n; uniform float t; uniform vec3 sun; uniform sampler2D map;
       void main(){
-        vec3 q = normalize(p)*3.2 + vec3(t*.012, 0., t*.006);
-        float c = smoothstep(.5, .78, fbm(q));
+        vec3 d = normalize(p);
+        vec2 uv = vec2(atan(d.z, d.x)/6.2831853 + .5 + t*.0019, asin(clamp(d.y,-1.,1.))/3.14159265 + .5);
+        float c = texture2D(map, uv).r;
         float lit = clamp(dot(normalize(n), sun)*1.1+.18, 0., 1.);
         gl_FragColor = vec4(vec3(.96,.98,1.)*lit, c*.82*lit + c*.06);
       }`,

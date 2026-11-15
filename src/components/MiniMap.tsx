@@ -88,12 +88,12 @@ export default function MiniMap({ overlays, blocked, imageryMs, inspected, onGo 
   }, [ready, overlays, blocked])
 
   // Date-driven tiles.
+  const onKey = OVERLAYS.filter((o) => overlays[o.id as OverlayId].on).map((o) => o.id).join(',')
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
-    for (const o of OVERLAYS) if (overlays[o.id as OverlayId].on) (map.getSource(o.id) as maplibregl.RasterTileSource | undefined)?.setTiles([overlayUrl(o, imageryMs)])
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, imageryMs, overlays])
+    for (const o of OVERLAYS) if (onKey.split(',').includes(o.id)) (map.getSource(o.id) as maplibregl.RasterTileSource | undefined)?.setTiles([overlayUrl(o, imageryMs)])
+  }, [ready, imageryMs, onKey]) // not on every opacity change: it would reload the tiles
 
   // Where the 3D view is looking.
   useEffect(() => {

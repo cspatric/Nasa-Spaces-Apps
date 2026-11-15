@@ -71,6 +71,18 @@ export function ScoreBars({ items, delay = 500 }: { items: { label: Tri; v: numb
   )
 }
 
+/** The problem on the left (red) and what the project does about it on the right (green). */
+export function ProblemSolution({ problemLabel, solutionLabel, problems, solutions }: { problemLabel: Tri; solutionLabel: Tri; problems: Tri[]; solutions: Tri[] }) {
+  const tx = useTx()
+  return (
+    <div className="ps">
+      <section className="ps-g no"><b className="mono">{tx(problemLabel)}</b><ul>{problems.map((s, k) => <li key={k}>{tx(s)}</li>)}</ul></section>
+      <div className="ps-arrow" aria-hidden="true">↓</div>
+      <section className="ps-g yes"><b className="mono">{tx(solutionLabel)}</b><ul>{solutions.map((s, k) => <li key={k}>{tx(s)}</li>)}</ul></section>
+    </div>
+  )
+}
+
 export function SayAvoid({ say, avoid, sayLabel, avoidLabel }: { say: Tri[]; avoid: Tri[]; sayLabel: Tri; avoidLabel: Tri }) {
   const tx = useTx()
   return (
@@ -275,21 +287,33 @@ export function TwoDates() {
     g.putImageData(im, 0, 0)
   }, [stats.t, A, B])
   return (
-    <>
-      <div className="stack" style={{ maxHeight: '36vh', aspectRatio: '1', alignSelf: 'center', width: 'min(100%, 36vh)' }}>
-        <canvas ref={cb} className="px" width={N} height={N} />
-        <canvas ref={ca} className="px" width={N} height={N} style={{ clipPath: `inset(0 0 0 ${wipe}%)` }} />
-        <canvas ref={cc} className="px ov" width={N} height={N} />
+    <div className="td">
+      <div className="td-fig">
+        <div className="stack td-stack">
+          <canvas ref={cb} className="px" width={N} height={N} />
+          <canvas ref={ca} className="px" width={N} height={N} style={{ clipPath: `inset(0 0 0 ${wipe}%)` }} />
+          <canvas ref={cc} className="px ov" width={N} height={N} />
+          <span className="td-chip l mono">21 OCT</span>
+          <span className="td-chip r mono">2 NOV</span>
+          <i className="td-line" style={{ left: `${wipe}%` }}><b /></i>
+        </div>
+        <input type="range" min={0} max={100} value={wipe} onChange={(e) => setWipe(+e.target.value)} aria-label="Wipe" />
       </div>
-      <div className="row mono"><span>◀ 21 OCT</span><span>2 NOV ▶</span></div>
-      <input type="range" min={0} max={100} value={wipe} onChange={(e) => setWipe(+e.target.value)} aria-label="Wipe" />
-      <div className="row"><b style={{ color: 'var(--fg)' }}>{tx(T('Change threshold', 'Limiar de mudança', 'Umbral de cambio'))}</b><span>&gt; {(stats.t * 10).toFixed(1)} dB</span></div>
-      <input type="range" min={4} max={60} value={th} onChange={(e) => setTh(+e.target.value)} onMouseUp={() => sound.ping()} aria-label="Threshold" />
-      <div className="metrics">
-        <div className="metric"><b>{stats.hit}%</b><span>{tx(T('of the real change found', 'da mudança real encontrada', 'del cambio real encontrado'))}</span></div>
-        <div className="metric"><b style={{ color: 'var(--red)' }}>{stats.fa}</b><span>{tx(T('false alarms (noise)', 'alarmes falsos (ruído)', 'falsas alarmas (ruido)'))}</span></div>
+      <div className="td-side">
+        <div className="td-th">
+          <div className="row"><b style={{ color: 'var(--fg)' }}>{tx(T('Change threshold', 'Limiar de mudança', 'Umbral de cambio'))}</b><em className="td-val mono">&gt; {(stats.t * 10).toFixed(1)} dB</em></div>
+          <input type="range" min={4} max={60} value={th} onChange={(e) => setTh(+e.target.value)} onMouseUp={() => sound.ping()} aria-label="Threshold" />
+          <small className="td-key"><i />{tx(T('pixels flagged as change', 'pixels marcados como mudança', 'píxeles marcados como cambio'))}</small>
+        </div>
+        <div className="metrics td-metrics">
+          <div className="metric">
+            <b>{stats.hit}%</b><span>{tx(T('of the real change found', 'da mudança real encontrada', 'del cambio real encontrado'))}</span>
+            <div className="td-meter"><i style={{ width: `${stats.hit}%` }} /></div>
+          </div>
+          <div className="metric"><b style={{ color: 'var(--red)' }}>{stats.fa}</b><span>{tx(T('false alarms (noise)', 'alarmes falsos (ruído)', 'falsas alarmas (ruido)'))}</span></div>
+        </div>
       </div>
-    </>
+    </div>
   )
 }
 

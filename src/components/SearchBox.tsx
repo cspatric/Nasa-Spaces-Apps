@@ -15,6 +15,8 @@ export interface Place {
 
 interface Props {
   onSelect: (p: Place) => void
+  /** Choosing a place is not allowed now (data is being processed). */
+  locked?: boolean
 }
 
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
@@ -49,7 +51,7 @@ async function remoteMatches(q: string, signal: AbortSignal): Promise<Place[]> {
   })
 }
 
-export default function SearchBox({ onSelect }: Props) {
+export default function SearchBox({ onSelect, locked = false }: Props) {
   const { t } = useI18n()
   const [q, setQ] = useState('')
   const [remote, setRemote] = useState<Place[]>([])
@@ -115,12 +117,14 @@ export default function SearchBox({ onSelect }: Props) {
         value={q}
         placeholder={t('Search a city or place')}
         aria-label={t('Search a city or place')}
+        disabled={locked}
+        title={locked ? t('Locked while data is being processed') : undefined}
         onChange={(e) => { setQ(e.target.value); setRemote([]); setOpen(true); setActive(0) }}
         onFocus={() => setOpen(true)}
         onKeyDown={onKey}
       />
       {busy && <span className="spin" aria-label={t('Searching')} />}
-      {open && q.trim() && (
+      {open && !locked && q.trim() && (
         <ul className="results" role="listbox">
           {items.length === 0 && <li className="none">{busy ? t('Searching…') : t('No results')}</li>}
           {items.map((p, i) => (

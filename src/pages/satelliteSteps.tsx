@@ -1,6 +1,6 @@
 import type { Step } from '../components/Deck'
 import { T } from './helpers'
-import { Claims, Echo, Metrics, ModelChoice, PixelGrid, RainLag, SayAvoid, TimelineList, TwoDates } from './visuals'
+import { Claims, Echo, Metrics, ModelChoice, PixelGrid, ProblemSolution, RainLag, TimelineList, TwoDates } from './visuals'
 
 export const SATELLITE_STEPS: Step[] = [
   {
@@ -142,18 +142,26 @@ export const SATELLITE_STEPS: Step[] = [
   },
   {
     id: 'honest',
-    kicker: T('09 · The honest ending', '09 · O fim honesto', '09 · El final honesto'),
-    title: T('What we say, and what we don’t', 'O que dizemos e o que não dizemos', 'Lo que decimos y lo que no'),
-    fig: T('Wording in the report', 'Texto no relatório', 'Texto en el informe'),
+    kicker: T('09 · Why it matters', '09 · Por que importa', '09 · Por qué importa'),
+    title: T('The problem this project solves', 'O problema que este projeto resolve', 'El problema que resuelve este proyecto'),
+    fig: T('Problem and answer', 'Problema e resposta', 'Problema y respuesta'),
     narration: T(
-      'So here is what we say, and what we avoid. We say a change in the radar response, an exploratory association, and a simulated scenario with uncertainty. We avoid saying that NISAR detected deforestation, that the Amazon causes events elsewhere, or that in 2030 we will have a given result. Saying less, and saying it right, is what makes the work trustworthy.',
-      'Então aqui está o que dizemos e o que evitamos. Dizemos uma mudança na resposta do radar, uma associação exploratória e um cenário simulado com incerteza. Evitamos dizer que o NISAR detectou desmatamento, que a Amazônia causa eventos em outros lugares, ou que em 2030 teremos certo resultado. Dizer menos, e dizer certo, é o que torna o trabalho confiável.',
-      'Así que esto es lo que decimos y lo que evitamos. Decimos un cambio en la respuesta del radar, una asociación exploratoria y un escenario simulado con incertidumbre. Evitamos decir que NISAR detectó deforestación, que el Amazonas causa eventos en otros lugares, o que en 2030 tendremos cierto resultado. Decir menos, y decirlo bien, es lo que hace confiable el trabajo.'),
+      'So what problem does all this solve? Forests and cities change, and we usually find out only after the damage is done. Clouds hide the Amazon from ordinary satellite photos for much of the year, and radar data is so large and technical that few people can use it. This project reads NISAR radar through the clouds and shows what changed between two dates, place by place. It puts rain next to the radar, to ask whether a change fits the weather, as an association and never as a proof of cause. And it projects radar and rain to 2030 as a labelled scenario, with an error band, and says plainly when the data is too short to trust. We say a change in the radar response, never that NISAR detected deforestation.',
+      'Então, que problema tudo isso resolve? Florestas e cidades mudam, e normalmente só ficamos sabendo depois que o dano aconteceu. As nuvens escondem a Amazônia das fotos de satélite comuns durante boa parte do ano, e os dados de radar são tão grandes e técnicos que poucas pessoas conseguem usá-los. Este projeto lê o radar NISAR através das nuvens e mostra o que mudou entre duas datas, lugar por lugar. Coloca a chuva ao lado do radar, para perguntar se uma mudança combina com o tempo, como associação e nunca como prova de causa. E projeta radar e chuva até 2030 como um cenário rotulado, com faixa de erro, e diz com clareza quando os dados são curtos demais para confiar. Dizemos uma mudança na resposta do radar, nunca que o NISAR detectou desmatamento.',
+      'Entonces, ¿qué problema resuelve todo esto? Los bosques y las ciudades cambian, y normalmente nos enteramos solo cuando el daño ya ocurrió. Las nubes esconden el Amazonas de las fotos de satélite comunes buena parte del año, y los datos de radar son tan grandes y técnicos que pocas personas pueden usarlos. Este proyecto lee el radar NISAR a través de las nubes y muestra qué cambió entre dos fechas, lugar por lugar. Pone la lluvia junto al radar, para preguntar si un cambio encaja con el tiempo, como asociación y nunca como prueba de causa. Y proyecta radar y lluvia hasta 2030 como un escenario etiquetado, con banda de error, y dice con claridad cuándo los datos son demasiado cortos para confiar. Decimos un cambio en la respuesta del radar, nunca que NISAR detectó deforestación.'),
     render: () => (
-      <SayAvoid
-        sayLabel={T('We say', 'Dizemos', 'Decimos')} avoidLabel={T('We avoid', 'Evitamos', 'Evitamos')}
-        say={[T('“A change in the radar response.”', '“Uma mudança na resposta do radar.”', '“Un cambio en la respuesta del radar.”'), T('“An exploratory association.”', '“Uma associação exploratória.”', '“Una asociación exploratoria.”'), T('“A simulated scenario, with uncertainty.”', '“Um cenário simulado, com incerteza.”', '“Un escenario simulado, con incertidumbre.”')]}
-        avoid={[T('“NISAR detected deforestation.”', '“O NISAR detectou desmatamento.”', '“NISAR detectó deforestación.”'), T('“The Amazon causes events elsewhere.”', '“A Amazônia causa eventos em outros lugares.”', '“El Amazonas causa eventos en otros lugares.”'), T('“In 2030 we will have…”', '“Em 2030 teremos…”', '“En 2030 tendremos…”')]} />
+      <ProblemSolution
+        problemLabel={T('The problem', 'O problema', 'El problema')} solutionLabel={T('What the project does', 'O que o projeto faz', 'Qué hace el proyecto')}
+        problems={[
+          T('Damage is noticed only after it happens.', 'O dano só é percebido depois que acontece.', 'El daño se nota solo después de que ocurre.'),
+          T('Clouds hide the Amazon from ordinary satellite photos.', 'As nuvens escondem a Amazônia das fotos de satélite comuns.', 'Las nubes esconden el Amazonas de las fotos de satélite comunes.'),
+          T('Radar data is huge and hard to read.', 'Dados de radar são enormes e difíceis de ler.', 'Los datos de radar son enormes y difíciles de leer.'),
+        ]}
+        solutions={[
+          T('Reads NISAR radar through the clouds and shows what changed between two dates.', 'Lê o radar NISAR através das nuvens e mostra o que mudou entre duas datas.', 'Lee el radar NISAR a través de las nubes y muestra qué cambió entre dos fechas.'),
+          T('Puts rain beside the radar: an association, never a proof of cause.', 'Põe a chuva ao lado do radar: uma associação, nunca prova de causa.', 'Pone la lluvia junto al radar: una asociación, nunca prueba de causa.'),
+          T('Projects to 2030 as a labelled scenario, with an error band, and warns when data is too short.', 'Projeta até 2030 como cenário rotulado, com faixa de erro, e avisa quando os dados são curtos.', 'Proyecta hasta 2030 como escenario etiquetado, con banda de error, y avisa cuando los datos son cortos.'),
+        ]} />
     ),
   },
   {

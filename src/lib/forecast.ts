@@ -44,6 +44,8 @@ export interface ForecastResult {
   builtAt?: string
 }
 
+/** How a forecast ended, once, so the page can say so. `id` comes from the hook and never repeats. */
+export interface ForecastOutcome { id: number; kind: 'done' | 'error' | 'cancelled'; message?: string; code?: string }
 export interface ForecastState {
   status: 'idle' | 'loading' | 'done' | 'error'
   phase: string
@@ -51,31 +53,38 @@ export interface ForecastState {
   total: number
   result: ForecastResult | null
   message?: string
+  /** Backend code of the failure (`insufficient-history`, `token-missing`...), when it sent one. */
+  code?: string
+  outcome: ForecastOutcome | null
 }
-const EMPTY: ForecastState = { status: 'idle', phase: '', done: 0, total: 0, result: null }
+const EMPTY: ForecastState = { status: 'idle', phase: '', done: 0, total: 0, result: null, outcome: null }
 
 type Action =
   | { type: 'reset' }
   | { type: 'start' }
   | { type: 'progress'; phase: string; done: number; total: number }
   | { type: 'result'; result: ForecastResult }
-  | { type: 'end'; status: 'done' | 'error'; message?: string }
+  | { type: 'end'; id: number; status: 'done' | 'error'; message?: string; code?: string }
+  | { type: 'cancel'; id: number }
 
 function reducer(s: ForecastState, a: Action): ForecastState {
   if (a.type === 'reset') return EMPTY
   if (a.type === 'start') return { ...EMPTY, status: 'loading' }
   if (a.type === 'progress') return { ...s, phase: a.phase, done: a.done, total: a.total }
   if (a.type === 'result') return { ...s, result: a.result }
-  return { ...s, status: s.result ? 'done' : a.status, message: a.message }
+  if (a.type === 'cancel') return s.status === 'loading' ? { ...EMPTY, result: s.result, status: s.result ? 'done' : 'idle', outcome: { id: a.id, kind: 'cancelled' } } : s
+  const status = s.result ? 'done' : a.status
+  return { ...s, status, message: a.message, code: a.code, outcome: { id: a.id, kind: status === 'done' ? 'done' : 'error', message: a.message, code: a.code } }
 }
 
 /**
  * Forecast to 2030 for a point, computed by the backend (`/forecast/stream`). It reads years of history, so it
  * only starts when asked (`run`); progress streams in while it works. Changing the point cancels and clears it.
  */
-export function useForecast(point: { lon: number; lat: number } | null, windowM = 500): { state: ForecastState; run: () => void } {
+export function useForecast(point: { lon: number; lat: number } | null, windowM = 500): { state: ForecastState; run: () => void; cancel: () => void } {
   const [state, dispatch] = useReducer(reducer, EMPTY)
   const es = useRef<{ close: () => void } | null>(null)
+  const seq = useRef(0)
   const lon = point ? Number(point.lon.toFixed(3)) : null
   const lat = point ? Number(point.lat.toFixed(3)) : null
 
@@ -92,14 +101,20 @@ export function useForecast(point: { lon: number; lat: number } | null, windowM 
       progress: (d) => dispatch({ type: 'progress', phase: d.phase, done: d.done, total: d.total }),
       result: (r) => dispatch({ type: 'result', result: r }),
     }, {
-      done: () => dispatch({ type: 'end', status: 'done' }),
-      fatal: (message) => dispatch({ type: 'end', status: 'error', message }),
-      unreachable: () => dispatch({ type: 'end', status: 'error', message: `Backend not reachable at ${API_URL}. Start it with: uv run asf-api` }),
+      done: () => dispatch({ type: 'end', id: ++seq.current, status: 'done' }),
+      fatal: (message, info) => dispatch({ type: 'end', id: ++seq.current, status: 'error', message, code: info?.code }),
+      unreachable: () => dispatch({ type: 'end', id: ++seq.current, status: 'error', message: `Backend not reachable at ${API_URL}. Start it with: uv run asf-api` }),
     })
     es.current = { close }
   }, [lon, lat, windowM])
 
-  return { state, run }
+  const cancel = useCallback(() => {
+    es.current?.close()
+    es.current = null
+    dispatch({ type: 'cancel', id: ++seq.current })
+  }, [])
+
+  return { state, run, cancel }
 }
 
 /** Where the forecast is, from 0 to 1 over all its phases (radar history is the longest part). */

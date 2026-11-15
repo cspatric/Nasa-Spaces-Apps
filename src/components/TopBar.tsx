@@ -15,6 +15,8 @@ interface Props {
   onLeft: () => void
   onRight: () => void
   onAssistant: () => void
+  /** Data is being processed: places cannot be searched and picked. */
+  locked: boolean
 }
 
 export function BrandMark({ size = 30 }: { size?: number }) {
@@ -58,7 +60,7 @@ function CityMenu({ onCity }: { onCity: (c: City) => void }) {
   )
 }
 
-export default function TopBar({ onFly, onCity, onPlace, leftOpen, rightOpen, onLeft, onRight, onAssistant }: Props) {
+export default function TopBar({ onFly, onCity, onPlace, leftOpen, rightOpen, onLeft, onRight, onAssistant, locked }: Props) {
   const { t, lang, setLang } = useI18n()
   const [muted, setMuted] = useState(sound.isMuted())
   return (
@@ -68,7 +70,7 @@ export default function TopBar({ onFly, onCity, onPlace, leftOpen, rightOpen, on
         <div className="brand-name">SARIS</div>
       </Link>
       <button className={`toggle glass ${leftOpen ? 'on' : ''}`} onClick={onLeft} aria-pressed={leftOpen}>{t('Layers')}</button>
-      <SearchBox onSelect={onPlace} />
+      <SearchBox onSelect={onPlace} locked={locked} />
       <nav className="presets glass" aria-label={t('Camera presets')}>
         {CAMERA_PRESETS.map((p) => (
           <button key={p.id} onClick={() => onFly(p)}>

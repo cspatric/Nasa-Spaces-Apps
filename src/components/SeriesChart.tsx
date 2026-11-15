@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react'
+import { memo, useId, useMemo, useState } from 'react'
 import { nearest, smoothPath } from '../lib/chart'
 import { useI18n } from '../lib/i18n'
 import type { Series } from '../lib/series'
@@ -14,7 +14,7 @@ const PAD = { l: 30, r: 8, t: 10, b: 18 }
 const COLOR: Record<string, string> = { co: '#3be0c5', cross: '#f59e42', rain: '#8b9cff', tmax: '#fb7185', soil: '#a3e635' }
 
 /** Radar or rain series: smooth lines with a glow and a soft fill, a marker for the date on the timeline, and a crosshair on hover. */
-export default function SeriesChart({ series, nowMs }: Props) {
+function SeriesChart({ series, nowMs }: Props) {
   const { t: tr, locale } = useI18n()
   const uid = useId().replace(/:/g, '')
   const [hover, setHover] = useState<number | null>(null)
@@ -37,17 +37,10 @@ export default function SeriesChart({ series, nowMs }: Props) {
   const lead = series[0]
   const base = H - PAD.b
 
-  const onMove = (e: React.MouseEvent<SVGSVGElement>) => {
-    const r = e.currentTarget.getBoundingClientRect()
-    const px = ((e.clientX - r.left) / r.width) * W
-    const t = m.t0 + ((px - PAD.l) / (W - PAD.l - PAD.r)) * (m.t1 - m.t0)
-    setHover(lead.t.length ? lead.t[nearest(lead.t, t)] : null)
-  }
-  const hx = hover !== null ? x(hover) : null
-  const tipLeft = hx !== null && hx > W * 0.6
-
-  return (
-    <svg className="chart modern" viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={tr('Backscatter series')} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
+  // The lines do not depend on the hover or on the timeline marker: they are built again only when the data changes,
+  // so moving the mouse over the chart redraws a crosshair, not the whole series (and its blur filter).
+  const body = useMemo(() => (
+    <>
       <defs>
         <filter id={`${uid}-glow`} x="-10%" y="-30%" width="120%" height="160%"><feGaussianBlur stdDeviation="2.2" /></filter>
         {series.map((s, k) => {
@@ -75,10 +68,25 @@ export default function SeriesChart({ series, nowMs }: Props) {
             <path d={line} fill="none" stroke={c} strokeWidth="3" opacity=".45" filter={`url(#${uid}-glow)`} />
             <path className="draw" pathLength={1} d={line} fill="none" stroke={c} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
             {pts.length <= 70 && pts.map((p, i) => <rect key={i} x={p[0] - 1.4} y={p[1] - 1.4} width="2.8" height="2.8" fill="#04121a" stroke={c} strokeWidth="1" />)}
-            <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r="3" fill={c}><animate attributeName="r" values="2.5;5;2.5" dur="2s" repeatCount="indefinite" /><animate attributeName="opacity" values="1;.35;1" dur="2s" repeatCount="indefinite" /></circle>
+            <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r="3" fill={c} />
           </g>
         )
       })}
+    </>
+  ), [series, m, uid, digits, base]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const onMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    const px = ((e.clientX - r.left) / r.width) * W
+    const t = m.t0 + ((px - PAD.l) / (W - PAD.l - PAD.r)) * (m.t1 - m.t0)
+    setHover(lead.t.length ? lead.t[nearest(lead.t, t)] : null)
+  }
+  const hx = hover !== null ? x(hover) : null
+  const tipLeft = hx !== null && hx > W * 0.6
+
+  return (
+    <svg className="chart modern" viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={tr('Backscatter series')} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
+      {body}
       {nx !== null && <g><line x1={nx} x2={nx} y1={PAD.t} y2={base} stroke="#fff" strokeOpacity=".45" strokeDasharray="3 3" /><rect x={nx - 1.5} y={PAD.t - 2} width="3" height="3" fill="#fff" /></g>}
       {hx !== null && hover !== null && (
         <g pointerEvents="none">
@@ -96,3 +104,5 @@ export default function SeriesChart({ series, nowMs }: Props) {
     </svg>
   )
 }
+
+export default memo(SeriesChart)

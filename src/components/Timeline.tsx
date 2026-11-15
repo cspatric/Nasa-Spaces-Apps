@@ -1,3 +1,4 @@
+import { memo, useEffect, useRef, useState } from 'react'
 import { L_BAND_START, SCENARIO_START, TIMELINE_DAYS } from '../lib/catalog'
 import { useI18n } from '../lib/i18n'
 import { formatDay, indexFromMs, modeAt, msFromIndex } from '../lib/dates'
@@ -5,29 +6,37 @@ import { formatDay, indexFromMs, modeAt, msFromIndex } from '../lib/dates'
 interface Props {
   index: number
   onIndex: (i: number) => void
-  playing: boolean
-  onPlay: () => void
   clamped: boolean
 }
 
 const pct = (ms: number) => (indexFromMs(ms) / TIMELINE_DAYS) * 100
 const YEARS = [2016, 2018, 2020, 2022, 2024, 2026, 2028, 2030]
 
-export default function Timeline({ index, onIndex, playing, onPlay, clamped }: Props) {
+function Timeline({ index, onIndex, clamped }: Props) {
   const { t, locale } = useI18n()
-  const ms = msFromIndex(index)
+  // While the thumb is dragged the date and the label follow it at once, but the rest of the page (charts, layers, imagery)
+  // is told at most ten times a second, and once more when the thumb is released.
+  const [drag, setDrag] = useState<number | null>(null)
+  const latest = useRef(index)
+  const timer = useRef(0)
+  useEffect(() => () => clearTimeout(timer.current), [])
+  const commit = () => {
+    clearTimeout(timer.current)
+    timer.current = 0
+    onIndex(latest.current)
+  }
+  const release = () => {
+    if (drag === null) return
+    commit()
+    setDrag(null)
+  }
+  const shown = drag ?? index
+  const ms = msFromIndex(shown)
   const mode = modeAt(ms)
   const lB = pct(L_BAND_START)
   const sc = pct(SCENARIO_START)
   return (
     <footer className="timeline glass">
-      <button className="play" onClick={onPlay} aria-label={playing ? t('Pause') : t('Play')}>
-        {playing ? (
-          <svg viewBox="0 0 14 14" width="14" height="14"><path fill="currentColor" d="M2.5 1h3.2v12H2.5zM8.3 1h3.2v12H8.3z" /></svg>
-        ) : (
-          <svg viewBox="0 0 14 14" width="14" height="14"><path fill="currentColor" d="M3 1v12l10-6z" /></svg>
-        )}
-      </button>
       <div className="when">
         <strong>{formatDay(ms, locale)}</strong>
         <span className={`mode ${mode.key}`}>{t(mode.label)}{clamped && mode.key !== 'scenario' ? t(' · latest imagery') : ''}</span>
@@ -42,9 +51,17 @@ export default function Timeline({ index, onIndex, playing, onPlay, clamped }: P
           type="range"
           min={0}
           max={TIMELINE_DAYS}
-          value={index}
+          value={shown}
           aria-label={t('Date')}
-          onChange={(e) => onIndex(Number(e.target.value))}
+          onChange={(e) => {
+            const v = Number(e.target.value)
+            latest.current = v
+            setDrag(v)
+            if (!timer.current) timer.current = window.setTimeout(commit, 100)
+          }}
+          onPointerUp={release}
+          onKeyUp={release}
+          onBlur={release}
         />
         <div className="years">
           {YEARS.map((y) => (
@@ -55,3 +72,5 @@ export default function Timeline({ index, onIndex, playing, onPlay, clamped }: P
     </footer>
   )
 }
+
+export default memo(Timeline)

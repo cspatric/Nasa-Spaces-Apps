@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react'
+import { memo, useId, useMemo, useState } from 'react'
 import { nearest, smoothPath } from '../lib/chart'
 import { useI18n } from '../lib/i18n'
 import type { ForecastPoint } from '../lib/forecast'
@@ -16,20 +16,11 @@ const H = 126
 const PAD = { l: 32, r: 8, t: 12, b: 18 }
 
 /** Observed months (muted), the forecast (colored) inside its 80 % band, where the data ends, and a crosshair on hover. */
-export default function ForecastChart({ history, forecast, color, digits = 1, label }: Props) {
+type Box = { t0: number; t1: number; y0: number; y1: number }
+
+/** The lines, band and axes of the chart: they change only with the data, not with the mouse, so they are drawn once (the blur filter is not cheap). */
+const Lines = memo(function Lines({ history, forecast, color, digits, uid, m }: { history: ForecastPoint[]; forecast: ForecastPoint[]; color: string; digits: number; uid: string; m: Box }) {
   const { locale } = useI18n()
-  const uid = useId().replace(/:/g, '')
-  const [hover, setHover] = useState<number | null>(null)
-  const m = useMemo(() => {
-    const all = [...history, ...forecast]
-    const ts = all.map((p) => p.t)
-    const ys = [...history.map((p) => p.v), ...forecast.flatMap((p) => [p.lo ?? p.v, p.hi ?? p.v])]
-    let y0 = Math.min(...ys), y1 = Math.max(...ys)
-    const pad = (y1 - y0) * 0.1 || 1
-    y0 -= pad; y1 += pad
-    return { t0: Math.min(...ts), t1: Math.max(...ts), y0, y1 }
-  }, [history, forecast])
-  if (!history.length || !forecast.length) return null
   const x = (t: number) => PAD.l + ((t - m.t0) / (m.t1 - m.t0 || 1)) * (W - PAD.l - PAD.r)
   const y = (v: number) => PAD.t + (1 - (v - m.y0) / (m.y1 - m.y0)) * (H - PAD.t - PAD.b)
   const base = H - PAD.b
@@ -39,23 +30,10 @@ export default function ForecastChart({ history, forecast, color, digits = 1, la
   const lo = forecast.map((p) => [x(p.t), y(p.lo ?? p.v)] as [number, number]).reverse()
   const band = `${smoothPath(up)}L${lo[0][0].toFixed(1)},${lo[0][1].toFixed(1)}${smoothPath(lo).replace(/^M[^C]*/, '')}Z`
   const year = (t: number) => new Date(t).toLocaleDateString(locale, { year: 'numeric', timeZone: 'UTC' })
-  const full = (t: number) => new Date(t).toLocaleDateString(locale, { month: 'short', year: 'numeric', timeZone: 'UTC' })
   const split = x(history[history.length - 1].t)
   const mono = 'ui-monospace,Menlo,monospace'
-
-  const all = [...history, ...forecast]
-  const xs = all.map((p) => p.t)
-  const onMove = (e: React.MouseEvent<SVGSVGElement>) => {
-    const r = e.currentTarget.getBoundingClientRect()
-    const t = m.t0 + ((((e.clientX - r.left) / r.width) * W - PAD.l) / (W - PAD.l - PAD.r)) * (m.t1 - m.t0)
-    setHover(nearest(xs, t))
-  }
-  const hp = hover !== null ? all[hover] : null
-  const isF = hp ? hp.t > history[history.length - 1].t : false
-  const hx = hp ? x(hp.t) : null
-  const tipLeft = hx !== null && hx > W * 0.55
   return (
-    <svg className="chart modern" viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={label} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
+    <>
       <defs>
         <linearGradient id={`${uid}-h`} x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#8fa3c7" stopOpacity=".22" /><stop offset="1" stopColor="#8fa3c7" stopOpacity="0" /></linearGradient>
         <linearGradient id={`${uid}-b`} x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor={color} stopOpacity=".38" /><stop offset="1" stopColor={color} stopOpacity=".1" /></linearGradient>
@@ -78,6 +56,45 @@ export default function ForecastChart({ history, forecast, color, digits = 1, la
       <path className="draw" pathLength={1} d={smoothPath(fc)} fill="none" stroke={color} strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
       <line x1={split} x2={split} y1={PAD.t - 4} y2={base} stroke="#fff" strokeOpacity=".4" strokeDasharray="3 3" />
       <text x={split + 4} y={PAD.t + 4} fontSize="7.5" fill="#9fb0cc" fontFamily={mono}>{year(history[history.length - 1].t)} ▸</text>
+    </>
+  )
+})
+
+function ForecastChart({ history, forecast, color, digits = 1, label }: Props) {
+  const { locale } = useI18n()
+  const uid = useId().replace(/:/g, '')
+  const [hover, setHover] = useState<number | null>(null)
+  const m = useMemo(() => {
+    const all = [...history, ...forecast]
+    const ts = all.map((p) => p.t)
+    const ys = [...history.map((p) => p.v), ...forecast.flatMap((p) => [p.lo ?? p.v, p.hi ?? p.v])]
+    let y0 = Math.min(...ys), y1 = Math.max(...ys)
+    const pad = (y1 - y0) * 0.1 || 1
+    y0 -= pad; y1 += pad
+    return { t0: Math.min(...ts), t1: Math.max(...ts), y0, y1 }
+  }, [history, forecast])
+  if (!history.length || !forecast.length) return null
+  const x = (t: number) => PAD.l + ((t - m.t0) / (m.t1 - m.t0 || 1)) * (W - PAD.l - PAD.r)
+  const y = (v: number) => PAD.t + (1 - (v - m.y0) / (m.y1 - m.y0)) * (H - PAD.t - PAD.b)
+  const base = H - PAD.b
+  const year = (t: number) => new Date(t).toLocaleDateString(locale, { year: 'numeric', timeZone: 'UTC' })
+  const full = (t: number) => new Date(t).toLocaleDateString(locale, { month: 'short', year: 'numeric', timeZone: 'UTC' })
+  const mono = 'ui-monospace,Menlo,monospace'
+
+  const all = [...history, ...forecast]
+  const xs = all.map((p) => p.t)
+  const onMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    const t = m.t0 + ((((e.clientX - r.left) / r.width) * W - PAD.l) / (W - PAD.l - PAD.r)) * (m.t1 - m.t0)
+    setHover(nearest(xs, t))
+  }
+  const hp = hover !== null ? all[hover] : null
+  const isF = hp ? hp.t > history[history.length - 1].t : false
+  const hx = hp ? x(hp.t) : null
+  const tipLeft = hx !== null && hx > W * 0.55
+  return (
+    <svg className="chart modern" viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={label} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
+      <Lines history={history} forecast={forecast} color={color} digits={digits} uid={uid} m={m} />
       {hp && hx !== null && (
         <g pointerEvents="none">
           <line x1={hx} x2={hx} y1={PAD.t} y2={base} stroke="#cfe3ff" strokeOpacity=".55" />
@@ -95,3 +112,5 @@ export default function ForecastChart({ history, forecast, color, digits = 1, la
     </svg>
   )
 }
+
+export default memo(ForecastChart)

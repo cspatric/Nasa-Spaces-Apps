@@ -23,6 +23,29 @@ interface Props {
 
 const BASE_SHORT: Record<BaseId, string> = { satellite: 'Satellite', bluemarble: 'Blue Marble', modis: 'Daily' }
 
+/** One line icon per base map: a satellite, the Earth, and a calendar day. */
+const BASE_ICON: Record<BaseId, React.ReactNode> = {
+  satellite: (
+    <>
+      <rect x="9" y="9" width="6" height="6" transform="rotate(45 12 12)" />
+      <path d="M4.5 4.5 8 8M16 16l3.5 3.5M3 8l5-5M16 21l5-5M5.5 9.5 2.5 12.5M14.5 18.5l-3 3" />
+    </>
+  ),
+  bluemarble: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" />
+    </>
+  ),
+  modis: (
+    <>
+      <rect x="3.5" y="5" width="17" height="15" />
+      <path d="M3.5 10h17M8 3v4M16 3v4" />
+      <circle cx="12" cy="15" r="1.6" />
+    </>
+  ),
+}
+
 function Toggle({ on, onChange, label, hint, color }: { on: boolean; onChange: (v: boolean) => void; label: string; hint?: string; color: string }) {
   return (
     <div className={`layer ${on ? 'on' : ''}`} title={hint}>
@@ -45,7 +68,9 @@ export default function LayerPanel(p: Props) {
       <Accordion title={t('Base map')} summary={t(BASE_SHORT[p.baseId])} defaultOpen>
         <div className="segmented">
           {(Object.keys(BASE_LAYERS) as BaseId[]).map((id) => (
-            <button key={id} className={p.baseId === id ? 'on' : ''} onClick={() => p.onBase(id)}>{t(BASE_SHORT[id])}</button>
+            <button key={id} className={`icon ${p.baseId === id ? 'on' : ''}`} aria-pressed={p.baseId === id} aria-label={t(BASE_SHORT[id])} title={t(BASE_SHORT[id])} onClick={() => p.onBase(id)}>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{BASE_ICON[id]}</svg>
+            </button>
           ))}
         </div>
         <p className="caption">{t(BASE_LAYERS[p.baseId].hint)}</p>

@@ -33,6 +33,20 @@ Page Down; the left arrow goes back), progress ticks you can click, and a narrat
 - **AI bar** (the `AI` button or Ctrl/Cmd+K): a centered bar over a blurred map. Commands in English, Portuguese or Spanish ("fly to Manaus", "show rain", "open the Amazon forecast", "simulate a magnitude 7 earthquake here") run offline in the page; open questions go to the backend `POST /assistant` and are answered from what the map shows, never invented numbers.
 - **Charts**: smooth areas and lines with hover read-outs, forecast bands and a today marker.
 
+The decks tell one argument, **a problem and how it is solved**: seven chapters in the top bar (Problem, Instrument, Engine,
+Observatory, Impact, Trust, Act), and every page states the problem it answers and the solution in two short lines.
+The **Engine** chapter shows the machine learning, the core of the project: a radar pixel becomes decibels (`dB = 10·log10(x)`),
+the model learns what is *normal* for a place (yearly rhythm of radar and rain), expects the coming months with a widening band, and
+flags months that leave it; then the proof (it must beat a simple same-month rule on places and years it never saw: 54 % rule,
+73 % radar, 85 % radar + ground color) and the three outputs (anomaly layer, chart with the expected range, scorecard). The
+**Impact** page shows the Amazon's moisture reaching the Andes, São Paulo, Rio Grande do Sul and the Plata basin (3D arcs).
+
+The backdrop is a **3D space scene** (`src/lib/spaceScene.ts`, three.js, loaded only by the decks): the Sun, the Moon, the Earth
+with NASA Blue Marble from GIBS, clouds, and NISAR and the satellites that feed the map (Sentinel-1, GPM, SMAP, NOAA-21) on
+their real orbit shapes (exaggerated heights). The camera flies from page to page (`FOCUS` and `WAYPOINTS`), follows the
+satellites, and reacts to the pointer. The narrator appears as subtitles, one sentence at a time, in sync with the recording.
+If WebGL is missing the page keeps the 2D star field.
+
 English, Portuguese and Spanish everywhere. The look is a mission-control screen: dark, thin lines, the Earth's limb,
 monospace labels, a clock in UTC, a figure on an "instrument screen" next to the narration.
 
@@ -74,7 +88,16 @@ The key is read from the environment and never stored in the repository.
   relative intensity inside the current view, not a calibrated value.
 - A fixed flat overview map (bottom right) shows the same NASA layers and date, where the 3D view is looking, and
   jumps the 3D view where you click.
-- Point inspector: radar series (NISAR, OPERA) and daily rain (GPM IMERG), all streamed live from the backend.
+- Point inspector (click the map or search a place; there is no area measuring) and **analysis period**: pick a place, choose a period (dates or 30 days / 6 months / 1 year / 5 years) and press
+  *Analyze*. The **backend chooses the sensor** from the period (NISAR when all of it is from October 2025 on, otherwise OPERA) and says
+  so. Radar series and daily rain (GPM IMERG) stream in live (`src/lib/analysis.ts`, `src/components/AnalysisBox.tsx`).
+  - **What the backend has to say is shown, not just logged**: the `notice` events of the backend (the sensor chosen, a period cut short,
+    scenes that failed, too little time for a confident reading) are listed under the period, errors first, and failures arrive in plain
+    words. The backend's verdict (`done.assessment`: high, limited or insufficient confidence) decides the tone of the final message.
+  - **The place is locked while data is processed** (analysis or forecast): map clicks, search, regions and *Clear* do
+    nothing and say why. *Cancel* releases it.
+  - **A message says when it ends** (a toast over the map and a summary in the panel): scenes and days read, the confidence, or what went
+    wrong. The forecast also says when it is ready, cancelled or failed.
 - Forecast to 2030: the `Run forecast` button asks the backend (`/forecast/stream`) to learn from the point's history
   since 2016 and project radar backscatter and rain with an 80 % band, shown with its backtest error and whether it
   beats "same as last year". The first run for a point reads years of scenes (a few minutes, with progress).
@@ -83,9 +106,6 @@ The key is read from the environment and never stored in the repository.
 - Risks: after a forecast, the inspector lists four risks (vegetation loss, flood, drought and fire, unusual change)
   with level, evidence and the land cover recognised by the pre-trained backend model, and the point's marker on the map
   takes the color of the overall level.
-- Area selection works on the flat and on the tilted 3D map: the Area button (map controls or inspector) or Shift+drag draws a
-  rectangle on the screen, its four corners are put on the ground, the box follows the mouse, Esc cancels, and releasing the
-  button outside the map still finishes it.
 - Natural disaster simulations (earthquake, flood, wildfire, storm): pick a point, set a few parameters and the damage
   zones grow on the map with their area in km² and, when zoomed in, the buildings inside each zone (`src/lib/disasters.ts`
   documents the models). They are what-ifs, labeled as simulations. Each plays its own sound.
@@ -116,14 +136,14 @@ for fewer tiles and never asking twice:
 - `public/sw.js` keeps every tile on the device (Cache API), so places already seen load instantly.
 - City names are a GPU symbol layer, not page elements; map events are throttled to one update per frame.
 - The pixel ratio is capped at 1.5, and moving an opacity slider does not reload tiles.
-- Radar and rain are read only for the days around the timeline date, in 30-day chunks (`src/lib/chunks.ts`):
-  a point opens in seconds, moving the date reads only the chunks it newly needs.
+- Radar and rain are read for the period the person chose, only when asked (*Analyze*), because a long period holds many
+  scenes; the timeline date only moves the marker on the charts.
 - Backend: ASF searches and CMR lists are remembered, rain is cached per grid cell, and NISAR scenes run in one
   long-lived process pool. A repeated chunk answers in milliseconds.
 
 ## Backend data (live)
 
-Radar series are **not** preloaded. Picking a point (or searching a city) makes the frontend call the
+Radar series are **not** preloaded. Pressing *Analyze* for a place and a period makes the frontend call the
 backend API of [asf-cleaner](https://github.com/luiz-fleal/asf-cleaner) (`asf-api`), which searches ASF,
 reads only the needed pixels of each NISAR / OPERA scene and streams the cleaned rows back as Server-Sent
 Events. The chart and the values at the timeline date fill in scene by scene.

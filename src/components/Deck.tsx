@@ -160,12 +160,25 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
   }, [deck, step, i, lang, muted]) // `muted` too: turning the voice back on speaks the current page again
 
   const root = useRef<HTMLDivElement>(null)
+  // The parallax follows the pointer at most once per frame, in steps of 0.05, so a still hand costs nothing and a moving one little.
+  const pending = useRef<{ x: number; y: number } | null>(null)
+  const frameId = useRef(0)
+  const lastLook = useRef({ x: 9, y: 9 })
   const look = (e: PointerEvent<HTMLDivElement>) => {
-    const el = root.current
-    if (!el) return
-    el.style.setProperty('--mx', String((e.clientX / innerWidth - 0.5) * 2))
-    el.style.setProperty('--my', String((e.clientY / innerHeight - 0.5) * 2))
+    pending.current = { x: e.clientX, y: e.clientY }
+    if (frameId.current) return
+    frameId.current = requestAnimationFrame(() => {
+      frameId.current = 0
+      const el = root.current, p = pending.current
+      if (!el || !p) return
+      const x = Math.round(((p.x / innerWidth - 0.5) * 2) * 20) / 20, y = Math.round(((p.y / innerHeight - 0.5) * 2) * 20) / 20
+      if (x === lastLook.current.x && y === lastLook.current.y) return
+      lastLook.current = { x, y }
+      el.style.setProperty('--mx', String(x))
+      el.style.setProperty('--my', String(y))
+    })
   }
+  useEffect(() => () => cancelAnimationFrame(frameId.current), [])
   // every page frames the "camera" differently; the background glides there instead of jumping
   const frame = { '--fx': `${Math.sin(i * 2.1) * 7}vmin`, '--fy': `${Math.cos(i * 1.7) * 4}vmin`, '--fr': `${Math.sin(i * 1.3) * 9}deg`, '--fz': 1 + (i % 4) * 0.045 } as CSSProperties
   return (

@@ -13,7 +13,7 @@ import { loadWind } from '../lib/wind'
 import { startWind } from '../lib/windCanvas'
 import { hexToRgb } from '../lib/tint'
 import { registerProtocols } from '../lib/protocols'
-import type { Area, CameraCommand, FlyRequest, LonLat, OverlayState, Pin } from '../lib/types'
+import type { CameraCommand, FlyRequest, LonLat, OverlayState, Outline, Pin } from '../lib/types'
 import type { ForecastMark } from '../lib/forecastMarks'
 
 interface Props {
@@ -28,10 +28,8 @@ interface Props {
   /** Air currents (animated wind particles). */
   wind: boolean
   onWind: (live: boolean | null) => void
-  /** Area selection: drag a rectangle on the map. */
-  selectMode: boolean
-  area: Area | null
-  onArea: (a: Area) => void
+  /** Outline of the open ready-made region, if any. */
+  outline: Outline | null
   /** Forecast labels (one per point, or per sample place of a region). */
   marks: ForecastMark[]
   cities: boolean
@@ -44,6 +42,9 @@ interface Props {
   inspectLevel: string | null
   exaggeration: number
   onPick: (p: LonLat) => void
+  /** Data is being processed: a click does not choose a place; `onBlocked` says why. */
+  locked: boolean
+  onBlocked: () => void
 }
 
 /** Same bucket under two hostnames: HTTP/1.1 allows 6 connections per host, so this doubles the parallel tile reads. */
@@ -221,13 +222,12 @@ export default function MapView(p: Props) {
   const mapRef = useRef<maplibregl.Map | null>(null)
   const [ready, setReady] = useState(false)
   const onPick = useRef(p.onPick)
-  const onArea = useRef(p.onArea)
-  const selecting = useRef(p.selectMode)
+  const locked = useRef(p.locked)
+  const onBlocked = useRef(p.onBlocked)
   useEffect(() => {
     onPick.current = p.onPick
-    onArea.current = p.onArea
-    selecting.current = p.selectMode
-    mapRef.current?.getCanvas().style.setProperty('cursor', p.selectMode ? 'crosshair' : '')
+    locked.current = p.locked
+    onBlocked.current = p.onBlocked
   })
 
   // Create and destroy the map.
@@ -265,61 +265,9 @@ export default function MapView(p: Props) {
     })
 
     map.on('click', (e) => {
-      if (!selecting.current) onPick.current({ lon: e.lngLat.lng, lat: e.lngLat.lat })
+      if (locked.current) onBlocked.current()
+      else onPick.current({ lon: e.lngLat.lng, lat: e.lngLat.lat })
     })
-    // Area selection (also on the tilted 3D map): drag a rectangle ON THE SCREEN, then its four corners are put on the ground.
-    // Works with the Area button, or by holding Shift while dragging. A box follows the mouse so what you draw is what you see.
-    const box = document.createElement('div')
-    box.className = 'select-box'
-    box.style.display = 'none'
-    map.getContainer().appendChild(box)
-    let start: { x: number; y: number } | null = null
-    let last = { x: 0, y: 0 }
-    const place = () => {
-      if (!start) return
-      Object.assign(box.style, { display: 'block', left: `${Math.min(start.x, last.x)}px`, top: `${Math.min(start.y, last.y)}px`, width: `${Math.abs(last.x - start.x)}px`, height: `${Math.abs(last.y - start.y)}px` })
-    }
-    const finish = () => {
-      if (!start) return
-      const s = start, e = last
-      start = null
-      box.style.display = 'none'
-      window.removeEventListener('mouseup', finish)
-      map.dragPan.enable()
-      const x0 = Math.min(s.x, e.x), x1 = Math.max(s.x, e.x), y0 = Math.min(s.y, e.y), y1 = Math.max(s.y, e.y)
-      if (x1 - x0 < 6 && y1 - y0 < 6) { // a click, not a drag: a point
-        const ll = map.unproject([s.x, s.y])
-        onArea.current({ west: ll.lng, east: ll.lng, south: ll.lat, north: ll.lat })
-        return
-      }
-      const corners = ([[x0, y0], [x1, y0], [x1, y1], [x0, y1]] as [number, number][]).map((pt) => map.unproject(pt))
-      if (corners.some((c) => !Number.isFinite(c.lng) || !Number.isFinite(c.lat))) return // a corner above the horizon: nothing to select
-      const lons = corners.map((c) => c.lng), lats = corners.map((c) => c.lat)
-      onArea.current({ west: Math.min(...lons), east: Math.max(...lons), south: Math.min(...lats), north: Math.max(...lats), corners: corners.map((c) => [c.lng, c.lat] as [number, number]) })
-    }
-    map.on('mousedown', (e) => {
-      if (!selecting.current && !e.originalEvent.shiftKey) return
-      e.preventDefault()
-      map.dragPan.disable()
-      start = { x: e.point.x, y: e.point.y }
-      last = start
-      window.addEventListener('mouseup', finish) // even if the button is released outside the map
-    })
-    map.on('mousemove', (e) => {
-      if (!start) return
-      last = { x: e.point.x, y: e.point.y }
-      place()
-    })
-    const cancel = (ev: KeyboardEvent) => {
-      if (ev.key === 'Escape' && start) {
-        start = null
-        box.style.display = 'none'
-        window.removeEventListener('mouseup', finish)
-        map.dragPan.enable()
-      }
-    }
-    window.addEventListener('keydown', cancel)
-    map.boxZoom.disable() // Shift+drag is for selecting here
 
     let lastMove = 0
     map.on('mousemove', (e) => {
@@ -357,9 +305,6 @@ export default function MapView(p: Props) {
     })
 
     return () => {
-      box.remove()
-      window.removeEventListener('keydown', cancel)
-      window.removeEventListener('mouseup', finish)
       mapRef.current = null
       setReady(false)
       map.remove()
@@ -367,11 +312,20 @@ export default function MapView(p: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Base map and overlay visibility.
+  // Base map and overlay visibility. Every style change makes the map recompute its layers, so a value is only sent
+  // when it differs from the one already applied (dragging one opacity slider used to resend all of them).
+  const applied = useRef(new Map<string, string>())
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
-    const show = (id: string, on: boolean) => map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none')
+    const same = (key: string, value: unknown) => {
+      const v = JSON.stringify(value)
+      if (applied.current.get(key) === v) return true
+      applied.current.set(key, v)
+      return false
+    }
+    const show = (id: string, on: boolean) => { if (!same(`${id}|vis`, on)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none') }
+    const paint = (id: string, prop: string, value: unknown) => { if (!same(`${id}|${prop}`, value)) map.setPaintProperty(id, prop as never, value as never) }
     show('sat', p.baseId === 'satellite')
     show('bm', p.baseId === 'bluemarble' || p.baseId === 'modis')
     show('modis-aqua', p.baseId === 'modis')
@@ -383,11 +337,11 @@ export default function MapView(p: Props) {
       const on = s.on && !blocked.includes(o.id)
       show(o.id, on)
       show(`${o.id}-base`, on)
-      map.setPaintProperty(o.id, 'raster-opacity', rasterOpacity(o, s.opacity))
-      map.setPaintProperty(`${o.id}-base`, 'raster-opacity', baseOpacity(s.opacity))
+      paint(o.id, 'raster-opacity', rasterOpacity(o, s.opacity))
+      paint(`${o.id}-base`, 'raster-opacity', baseOpacity(s.opacity))
       if (o.coarse) {
         show(`glow-${o.id}`, on)
-        map.setPaintProperty(`glow-${o.id}`, 'heatmap-opacity', glowOpacity(s.opacity))
+        paint(`glow-${o.id}`, 'heatmap-opacity', glowOpacity(s.opacity))
       }
     }
   }, [ready, p.baseId, p.overlays, p.buildings, blocked])
@@ -434,16 +388,16 @@ export default function MapView(p: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, p.wind])
 
-  // Area selection outline and forecast labels.
+  // Outline of the open region.
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
-    const a = p.area
-    const ring = a ? (a.corners ? [...a.corners, a.corners[0]] : [[a.west, a.south], [a.east, a.south], [a.east, a.north], [a.west, a.north], [a.west, a.south]]) : null
+    const a = p.outline
+    const ring = a ? [[a.west, a.south], [a.east, a.south], [a.east, a.north], [a.west, a.north], [a.west, a.south]] : null
     ;(map.getSource('area') as GeoJSONSource).setData(ring
       ? { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } }
       : { type: 'FeatureCollection', features: [] })
-  }, [ready, p.area])
+  }, [ready, p.outline])
 
   useEffect(() => {
     const map = mapRef.current
@@ -475,7 +429,9 @@ export default function MapView(p: Props) {
     for (const rank of [1, 2, 3]) for (const id of [`cities-${rank}`, `cities-dot-${rank}`]) map.setLayoutProperty(id, 'visibility', p.cities ? 'visible' : 'none')
   }, [ready, p.cities])
 
-  // Close-up glow of the coarse layers (same color as the raster), resampled when the view or the date changes.
+  // Close-up glow of the coarse layers (same color as the raster), resampled when the view or the date changes
+  // (and when a coarse layer is switched on or off, but not when an opacity slider moves).
+  const coarseOn = COARSE.filter((o) => p.overlays[o.id as OverlayId].on && !blocked.includes(o.id)).map((o) => o.id).join(',')
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
@@ -487,7 +443,7 @@ export default function MapView(p: Props) {
       await Promise.all(COARSE.map(async (o) => {
         const src = map.getSource(`glow-${o.id}`) as GeoJSONSource | undefined
         if (!src) return
-        const on = p.overlays[o.id as OverlayId].on && !blocked.includes(o.id) && view.zoom >= GLOW_FROM - 0.5
+        const on = coarseOn.split(',').includes(o.id) && view.zoom >= GLOW_FROM - 0.5
         const features = on ? await sampleGlow(o, isoDay(p.imageryMs), view, ctl.signal) : []
         if (!ctl.signal.aborted) src.setData({ type: 'FeatureCollection', features })
       }))
@@ -503,7 +459,7 @@ export default function MapView(p: Props) {
       clearTimeout(timer)
       map.off('moveend', later)
     }
-  }, [ready, p.overlays, p.imageryMs, blocked])
+  }, [ready, coarseOn, p.imageryMs])
 
   // Natural disaster simulation: damage zones grow from the point, then area and buildings are counted.
   useEffect(() => {

@@ -1,0 +1,39 @@
+/* The forecast tab: a verdict, one view at a time. Levels have one color everywhere: green, amber, red. */
+.fv { --low: #34d399; --moderate: #fbbf24; --high: #f87171; display: grid; gap: 10px; }
+.fv-sum { display: grid; gap: 6px; padding: 10px 12px; background: rgba(255, 255, 255, .04); border-left: 3px solid var(--line-strong, #5b6b85); }
+.fv-sum.low { border-left-color: var(--low); } .fv-sum.moderate { border-left-color: var(--moderate); } .fv-sum.high { border-left-color: var(--high); }
+.fv-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.fv-top h3 { margin: 0; font-size: 15px; letter-spacing: -.01em; }
+.fv-ready { font: 600 10px ui-monospace, Menlo, monospace; letter-spacing: .1em; text-transform: uppercase; color: #5eead4; padding: 2px 7px; background: rgba(94, 234, 212, .12); }
+.fv-verdict { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 10px; }
+.fv-verdict b { font-size: 20px; line-height: 1.1; } .fv-verdict span { font-size: 12.5px; opacity: .85; }
+.fv-na { margin: 0; font-size: 12.5px; opacity: .7; }
+.fv-facts { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 11px; opacity: .7; } .fv-facts b { font-weight: 700; }
+.fv-lvl { font-weight: 800; letter-spacing: .02em; } .fv-lvl.low { color: var(--low); } .fv-lvl.moderate { color: var(--moderate); } .fv-lvl.high { color: var(--high); } .fv-lvl.na { opacity: .5; }
+.fv-lvl:not(.fv-verdict b *) { font-size: 12px; }
+.fv-seg { display: flex; border: 1px solid rgba(255, 255, 255, .18); width: 100%; }
+.fv-seg button { flex: 1; padding: 7px 8px; background: none; border: 0; color: inherit; opacity: .65; font: 600 12px system-ui; cursor: pointer; }
+.fv-seg button.on { background: #3be0c5; color: #04121a; opacity: 1; }
+.fv-seg button:not(.on):hover { opacity: 1; background: rgba(255, 255, 255, .06); }
+.fv-risks { display: grid; gap: 8px; }
+.fv-risk { display: grid; gap: 6px; padding: 10px 12px; background: rgba(255, 255, 255, .035); border-left: 3px solid var(--c, #5b6b85); }
+.fv-risk.low { --c: var(--low); } .fv-risk.moderate { --c: var(--moderate); } .fv-risk.high { --c: var(--high); }
+.fv-rh { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13.5px; }
+.fv-meter { height: 4px; background: rgba(255, 255, 255, .1); } .fv-meter i { display: block; height: 100%; background: var(--c); }
+.fv-risk p { margin: 0; font-size: 12.5px; line-height: 1.45; opacity: .88; }
+.fv-risk footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11.5px; opacity: .8; }
+.fv-risk footer b { font-weight: 700; } .fv-risk footer button { margin-left: auto; background: none; border: 0; color: #5eead4; font: 600 11.5px system-ui; cursor: pointer; padding: 0; }
+.fv-off { margin: 2px 0 0; font-size: 11.5px; opacity: .55; }
+.fv-places { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.fv-places li { display: grid; grid-template-columns: 8px 1fr auto; align-items: center; gap: 10px; padding: 9px 12px; background: rgba(255, 255, 255, .035); }
+.fv-places li i { width: 8px; height: 8px; border-radius: 50%; background: #5b6b85; } .fv-places li.low i { background: var(--low); } .fv-places li.moderate i { background: var(--moderate); } .fv-places li.high i { background: var(--high); }
+.fv-places span { display: grid; gap: 1px; font-size: 13px; } .fv-places small { font-size: 11.5px; opacity: .65; }
+.fv-charts { display: grid; gap: 10px; }
+.fv-ch { display: grid; gap: 8px; padding: 10px 12px; background: rgba(255, 255, 255, .035); }
+.fv-chh { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+.fv-chh span { font: 600 10px ui-monospace, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; padding: 2px 7px; } .fv-chh .ok { color: #5eead4; background: rgba(94, 234, 212, .12); } .fv-chh .weak { color: var(--moderate); background: rgba(251, 191, 36, .12); }
+.fv-stats { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; }
+.fv-stats div { display: grid; gap: 1px; padding: 6px 8px; background: rgba(0, 0, 0, .25); } .fv-stats small { font-size: 10px; opacity: .6; } .fv-stats b { font: 700 15px ui-monospace, Menlo, monospace; } .fv-stats b.ok { color: #5eead4; } .fv-stats b.weak { color: var(--moderate); }
+.fv-years { display: flex; flex-wrap: wrap; gap: 6px; } .fv-years span { display: grid; padding: 4px 8px; background: rgba(255, 255, 255, .05); font: 600 12px ui-monospace, Menlo, monospace; } .fv-years em { font-style: normal; font-size: 10px; opacity: .55; }
+.fv-model { font-size: 11px; opacity: .55; }
+.fv-about { font-size: 12px; opacity: .85; } .fv-about summary { cursor: pointer; opacity: .7; padding: 2px 0; } .fv-about p { margin: 6px 0 0; line-height: 1.45; opacity: .8; }

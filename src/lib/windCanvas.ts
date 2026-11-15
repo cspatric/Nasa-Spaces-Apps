@@ -23,12 +23,15 @@ export function startWind(map: MapLibreMap, grid: WindGrid): () => void {
   }
   size()
 
-  const N = 1500
+  // Particles scale with the screen (a big window does not need the same density per pixel) and stay within a budget.
+  const N = Math.max(500, Math.min(1100, Math.round((box.clientWidth * box.clientHeight) / 1800)))
   const lon = new Float32Array(N), lat = new Float32Array(N), age = new Float32Array(N), life = new Float32Array(N)
+  // The view bounds are read when the map stops, not for every respawned particle (getBounds is not free).
+  let bounds = map.getBounds()
+  const refreshBounds = () => { bounds = map.getBounds() }
   const spawn = (i: number) => {
-    const b = map.getBounds()
-    const w = Math.max(b.getWest(), grid.west), e = Math.min(b.getEast(), grid.east)
-    const s = Math.max(b.getSouth(), grid.south), n = Math.min(b.getNorth(), grid.north)
+    const w = Math.max(bounds.getWest(), grid.west), e = Math.min(bounds.getEast(), grid.east)
+    const s = Math.max(bounds.getSouth(), grid.south), n = Math.min(bounds.getNorth(), grid.north)
     if (w >= e || s >= n) { lon[i] = grid.west + Math.random() * (grid.east - grid.west); lat[i] = grid.south + Math.random() * (grid.north - grid.south) }
     else { lon[i] = w + Math.random() * (e - w); lat[i] = s + Math.random() * (n - s) }
     age[i] = 0
@@ -36,42 +39,54 @@ export function startWind(map: MapLibreMap, grid: WindGrid): () => void {
   }
   for (let i = 0; i < N; i++) { spawn(i); age[i] = Math.random() * life[i] }
 
-  let raf = 0
+  // Strokes are drawn in a few color/opacity buckets, one path each, instead of one path per particle.
+  const BUCKETS = 8
+  const paths: Path2D[] = Array.from({ length: BUCKETS }, () => new Path2D())
+  const colors = Array.from({ length: BUCKETS }, (_, b) => {
+    const k = b / (BUCKETS - 1)
+    return `rgba(${Math.round(59 + 190 * k)},${Math.round(224 + 20 * k)},${Math.round(197 + 50 * k)},${(0.3 + 0.5 * k).toFixed(2)})`
+  })
+
+  let raf = 0, lastFrame = 0
   const clear = () => ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr)
-  const frame = () => {
+  const frame = (now: number) => {
+    raf = requestAnimationFrame(frame)
+    if (now - lastFrame < 33 || map.isMoving()) return // about 30 frames a second, and none while the camera moves (the trails are cleared then anyway)
+    lastFrame = now
     ctx.globalCompositeOperation = 'destination-out'
-    ctx.fillStyle = 'rgba(0,0,0,0.08)'
+    ctx.fillStyle = 'rgba(0,0,0,0.12)'
     ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr)
     ctx.globalCompositeOperation = 'source-over'
     ctx.lineWidth = 1.5
     ctx.lineCap = 'round'
     const ppd = (512 * 2 ** map.getZoom()) / 360 // pixels per degree of longitude
+    for (let b = 0; b < BUCKETS; b++) paths[b] = new Path2D()
     for (let i = 0; i < N; i++) {
       const w = windAt(grid, lon[i], lat[i])
       if (!w || ++age[i] > life[i]) { spawn(i); continue }
       const sp = Math.hypot(w.u, w.v) || 0.01
-      const px = Math.min(5, sp * 0.4) // screen pixels per frame
+      const px = Math.min(5, sp * 0.4) * 2 // screen pixels per drawn frame (twice the step, half the frames)
       const a = map.project([lon[i], lat[i]])
       lon[i] += ((w.u / sp) * px) / ppd
       lat[i] += ((w.v / sp) * px * Math.cos((lat[i] * Math.PI) / 180)) / ppd
       const b = map.project([lon[i], lat[i]])
       const fade = Math.min(1, age[i] / 12, (life[i] - age[i]) / 12)
       const k = Math.min(1, sp / 12)
-      ctx.strokeStyle = `rgba(${Math.round(59 + 190 * k)},${Math.round(224 + 20 * k)},${Math.round(197 + 50 * k)},${0.25 + 0.6 * fade * (0.5 + k)})`
-      ctx.beginPath()
-      ctx.moveTo(a.x, a.y)
-      ctx.lineTo(b.x, b.y)
-      ctx.stroke()
+      const bucket = Math.min(BUCKETS - 1, Math.floor(Math.min(1, k * 0.7 + fade * 0.3) * BUCKETS))
+      paths[bucket].moveTo(a.x, a.y)
+      paths[bucket].lineTo(b.x, b.y)
     }
-    raf = requestAnimationFrame(frame)
+    for (let b = 0; b < BUCKETS; b++) { ctx.strokeStyle = colors[b]; ctx.stroke(paths[b]) }
   }
   raf = requestAnimationFrame(frame)
 
   map.on('move', clear)
+  map.on('moveend', refreshBounds)
   map.on('resize', size)
   return () => {
     cancelAnimationFrame(raf)
     map.off('move', clear)
+    map.off('moveend', refreshBounds)
     map.off('resize', size)
     canvas.remove()
   }
