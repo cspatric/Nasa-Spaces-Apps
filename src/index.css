@@ -22,7 +22,8 @@
 
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
-body { margin: 0; overflow: hidden; }
+body { margin: 0; }
+body.is-app { overflow: hidden; }
 button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; padding: 0; }
 button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid rgba(94, 234, 212, 0.7); outline-offset: 2px; }
 h3 { margin: 0; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }

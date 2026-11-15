@@ -15,6 +15,17 @@ npm run lint
 
 Requires Node 20.19+ or 22.12+. No API keys are needed for the map.
 
+## Pages
+
+| Route | What it is |
+|---|---|
+| `/` | Presentation of the project, as a scrolling story (what it is, NASA layers, forecast, risks, regions, disasters, honest limits). It ends by leading to the satellite page. English, Portuguese and Spanish. |
+| `/satelite` | The satellite story, "Dancing with the SARs" (`public/satelite.html`, a page of its own: radar echo, pixels, two dates, rain, the model). Its back link goes to `/` and it ends by leading to the map. |
+| `/mapa` | The observatory (3D map, layers, forecast, risks, simulations). |
+
+The site is a single-page app: a static host needs a rewrite of unknown paths to `index.html` (the Vite dev server and
+`vite preview` already do it). `public/satelite.html` is served as it is.
+
 ## What is in the base
 
 - Realistic 3D relief of South America and part of Central America (the Amazon is the focus), drawn by

@@ -2,6 +2,7 @@ import { CAMERA_PRESETS, type CameraPreset } from '../lib/catalog'
 import { useEffect, useRef, useState } from 'react'
 import { CITIES, type City } from '../lib/cities'
 import { LANGS, useI18n } from '../lib/i18n'
+import Link from './Link'
 import { sound } from '../lib/sound'
 import SearchBox, { type Place } from './SearchBox'
 
@@ -61,10 +62,10 @@ export default function TopBar({ onFly, onCity, onPlace, leftOpen, rightOpen, on
   const [muted, setMuted] = useState(sound.isMuted())
   return (
     <header className="topbar">
-      <div className="brand glass">
+      <Link className="brand glass" to="/" title="SARIS">
         <BrandMark />
         <div className="brand-name">SARIS</div>
-      </div>
+      </Link>
       <button className={`toggle glass ${leftOpen ? 'on' : ''}`} onClick={onLeft} aria-pressed={leftOpen}>{t('Layers')}</button>
       <SearchBox onSelect={onPlace} />
       <nav className="presets glass" aria-label={t('Camera presets')}>
