@@ -286,3 +286,5 @@
 .deck .ps-arrow { justify-self: center; font-size: 16px; line-height: 1; color: var(--mut); }
 
 .deck .dk-hud .id { align-items: center; } .deck .dk-hud .id .logo { display: block; }
+
+.deck h1 .logo { display: block; margin: 0 auto 18px; filter: drop-shadow(0 0 28px rgba(0, 170, 255, .45)); }

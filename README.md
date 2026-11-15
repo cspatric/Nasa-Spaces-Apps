@@ -1,3 +1,5 @@
+<p align="center"><img src="public/logo.png" alt="SARIS" width="120"></p>
+
 # SARIS
 
 NASA Space Apps Challenge 2026, challenge "Dancing with the SARs".

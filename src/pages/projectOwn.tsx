@@ -1,5 +1,6 @@
 import type { Step } from '../components/Deck'
 import { T } from './helpers'
+import Logo from '../components/Logo'
 import { OVERLAYS } from '../lib/catalog'
 import { translate } from '../lib/i18n'
 import { CloudRadar, Metrics, Picker, SayAvoid, ScoreBars, SegmentBar, Tiles } from './visuals'
@@ -13,7 +14,7 @@ export const OWN: Step[] = [
     id: 'cover', solo: true,
     kicker: T('NASA Space Apps 2026 · Dancing with the SARs', 'NASA Space Apps 2026 · Dancing with the SARs', 'NASA Space Apps 2026 · Dancing with the SARs'),
     title: T('SARIS', 'SARIS', 'SARIS'),
-    heading: <h1><span className="w">Surface change observatory</span>SAR<em>IS</em></h1>,
+    heading: <h1><Logo size={96} /><span className="w">Surface change observatory</span>SAR<em>IS</em></h1>,
     narration: T(
       'Hello. This is SARIS, an observatory that watches how the land changes. I will walk you through it one step at a time: the problem we are solving, the data we use, and how honest we are about what we know. Press Continue whenever you are ready.',
       'Olá. Este é o SARIS, um observatório que acompanha como a terra muda. Vou levar você por ele um passo de cada vez: o problema que resolvemos, os dados que usamos e o quanto somos honestos sobre o que sabemos. Aperte Continuar quando estiver pronto.',
