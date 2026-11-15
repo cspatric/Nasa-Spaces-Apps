@@ -262,27 +262,60 @@ export default function MapView(p: Props) {
     map.on('click', (e) => {
       if (!selecting.current) onPick.current({ lon: e.lngLat.lng, lat: e.lngLat.lat })
     })
-    // area selection: press, drag a rectangle, release
-    let corner: maplibregl.LngLat | null = null
-    const rect = (b: maplibregl.LngLat, c: maplibregl.LngLat): Area => ({ west: Math.min(b.lng, c.lng), east: Math.max(b.lng, c.lng), south: Math.min(b.lat, c.lat), north: Math.max(b.lat, c.lat) })
+    // Area selection (also on the tilted 3D map): drag a rectangle ON THE SCREEN, then its four corners are put on the ground.
+    // Works with the Area button, or by holding Shift while dragging. A box follows the mouse so what you draw is what you see.
+    const box = document.createElement('div')
+    box.className = 'select-box'
+    box.style.display = 'none'
+    map.getContainer().appendChild(box)
+    let start: { x: number; y: number } | null = null
+    let last = { x: 0, y: 0 }
+    const place = () => {
+      if (!start) return
+      Object.assign(box.style, { display: 'block', left: `${Math.min(start.x, last.x)}px`, top: `${Math.min(start.y, last.y)}px`, width: `${Math.abs(last.x - start.x)}px`, height: `${Math.abs(last.y - start.y)}px` })
+    }
+    const finish = () => {
+      if (!start) return
+      const s = start, e = last
+      start = null
+      box.style.display = 'none'
+      window.removeEventListener('mouseup', finish)
+      map.dragPan.enable()
+      const x0 = Math.min(s.x, e.x), x1 = Math.max(s.x, e.x), y0 = Math.min(s.y, e.y), y1 = Math.max(s.y, e.y)
+      if (x1 - x0 < 6 && y1 - y0 < 6) { // a click, not a drag: a point
+        const ll = map.unproject([s.x, s.y])
+        onArea.current({ west: ll.lng, east: ll.lng, south: ll.lat, north: ll.lat })
+        return
+      }
+      const corners = ([[x0, y0], [x1, y0], [x1, y1], [x0, y1]] as [number, number][]).map((pt) => map.unproject(pt))
+      if (corners.some((c) => !Number.isFinite(c.lng) || !Number.isFinite(c.lat))) return // a corner above the horizon: nothing to select
+      const lons = corners.map((c) => c.lng), lats = corners.map((c) => c.lat)
+      onArea.current({ west: Math.min(...lons), east: Math.max(...lons), south: Math.min(...lats), north: Math.max(...lats), corners: corners.map((c) => [c.lng, c.lat] as [number, number]) })
+    }
     map.on('mousedown', (e) => {
-      if (!selecting.current) return
+      if (!selecting.current && !e.originalEvent.shiftKey) return
       e.preventDefault()
       map.dragPan.disable()
-      corner = e.lngLat
+      start = { x: e.point.x, y: e.point.y }
+      last = start
+      window.addEventListener('mouseup', finish) // even if the button is released outside the map
     })
     map.on('mousemove', (e) => {
-      if (!corner) return
-      const a = rect(corner, e.lngLat)
-      ;(map.getSource('area') as GeoJSONSource).setData({ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[a.west, a.south], [a.east, a.south], [a.east, a.north], [a.west, a.north], [a.west, a.south]]] } })
+      if (!start) return
+      last = { x: e.point.x, y: e.point.y }
+      place()
     })
-    map.on('mouseup', (e) => {
-      if (!corner) return
-      const a = rect(corner, e.lngLat)
-      corner = null
-      map.dragPan.enable()
-      onArea.current(a)
-    })
+    const cancel = (ev: KeyboardEvent) => {
+      if (ev.key === 'Escape' && start) {
+        start = null
+        box.style.display = 'none'
+        window.removeEventListener('mouseup', finish)
+        map.dragPan.enable()
+      }
+    }
+    window.addEventListener('keydown', cancel)
+    map.boxZoom.disable() // Shift+drag is for selecting here
+
     let lastMove = 0
     map.on('mousemove', (e) => {
       const now = performance.now()
@@ -319,6 +352,9 @@ export default function MapView(p: Props) {
     })
 
     return () => {
+      box.remove()
+      window.removeEventListener('keydown', cancel)
+      window.removeEventListener('mouseup', finish)
       mapRef.current = null
       setReady(false)
       map.remove()
@@ -379,8 +415,9 @@ export default function MapView(p: Props) {
     const map = mapRef.current
     if (!map || !ready) return
     const a = p.area
-    ;(map.getSource('area') as GeoJSONSource).setData(a
-      ? { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[a.west, a.south], [a.east, a.south], [a.east, a.north], [a.west, a.north], [a.west, a.south]]] } }
+    const ring = a ? (a.corners ? [...a.corners, a.corners[0]] : [[a.west, a.south], [a.east, a.south], [a.east, a.north], [a.west, a.north], [a.west, a.south]]) : null
+    ;(map.getSource('area') as GeoJSONSource).setData(ring
+      ? { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } }
       : { type: 'FeatureCollection', features: [] })
   }, [ready, p.area])
 

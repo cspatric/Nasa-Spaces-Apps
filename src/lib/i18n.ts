@@ -84,6 +84,7 @@ const PT: Record<string, string> = {
   'Forecasts computed ahead for whole regions: nothing to wait for.': 'Previsões calculadas antes para regiões inteiras: sem espera.', 'The backend has no regions yet.': 'O backend ainda não tem regiões.',
   '{n} sample places': '{n} lugares amostrados', 'being prepared': 'em preparo', '3D view': 'Vista 3D', '{n} on': '{n} ligadas', 'none on': 'nenhuma ligada', '{n} of 2 on': '{n} de 2 ligados', running: 'em andamento', simulations: 'simulações',
   'Average of {n} sample places spread over the region.': 'Média de {n} lugares amostrados pela região.',
+  'Drag a rectangle on the map. Esc cancels.': 'Arraste um retângulo no mapa. Esc cancela.', 'Select area': 'Selecionar área', 'Select area (or hold Shift and drag)': 'Selecionar área (ou segure Shift e arraste)',
   // forecast
   'Forecast to 2030': 'Previsão até 2030', 'Learns from this point since 2016 and projects radar and rain to 2030.': 'Aprende com o histórico deste ponto desde 2016 e projeta radar e chuva até 2030.',
   'Run forecast': 'Gerar previsão', 'Searching radar scenes…': 'Buscando cenas de radar…', 'Reading radar history': 'Lendo histórico do radar', 'Reading monthly rain': 'Lendo chuva mensal',
@@ -169,6 +170,7 @@ const ES: Record<string, string> = {
   'Forecasts computed ahead for whole regions: nothing to wait for.': 'Pronósticos calculados antes para regiones enteras: sin espera.', 'The backend has no regions yet.': 'El backend aún no tiene regiones.',
   '{n} sample places': '{n} lugares muestreados', 'being prepared': 'en preparación', '3D view': 'Vista 3D', '{n} on': '{n} activas', 'none on': 'ninguna activa', '{n} of 2 on': '{n} de 2 activos', running: 'en curso', simulations: 'simulaciones',
   'Average of {n} sample places spread over the region.': 'Promedio de {n} lugares muestreados por la región.',
+  'Drag a rectangle on the map. Esc cancels.': 'Arrastra un rectángulo en el mapa. Esc cancela.', 'Select area': 'Seleccionar área', 'Select area (or hold Shift and drag)': 'Seleccionar área (o mantén Shift y arrastra)',
   // forecast
   'Forecast to 2030': 'Pronóstico a 2030', 'Learns from this point since 2016 and projects radar and rain to 2030.': 'Aprende del historial de este punto desde 2016 y proyecta radar y lluvia hasta 2030.',
   'Run forecast': 'Generar pronóstico', 'Searching radar scenes…': 'Buscando escenas de radar…', 'Reading radar history': 'Leyendo historial del radar', 'Reading monthly rain': 'Leyendo lluvia mensual',

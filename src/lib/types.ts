@@ -7,4 +7,11 @@ export interface CameraCommand { tick: number; type: 'zoomIn' | 'zoomOut' | 'nor
 export type OverlayState = Record<OverlayId, { on: boolean; opacity: number }>
 
 /** A rectangle on the map, in degrees. */
-export interface Area { west: number; south: number; east: number; north: number }
+export interface Area {
+  west: number
+  south: number
+  east: number
+  north: number
+  /** The four ground corners of a rectangle drawn on a tilted map (it is not a lon/lat rectangle there). */
+  corners?: [number, number][]
+}

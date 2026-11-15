@@ -297,3 +297,9 @@ input[type='range']::-moz-range-thumb { width: 12px; height: 12px; border-radius
 .year-row span { flex: 1; letter-spacing: .06em; text-transform: uppercase; }
 .year-row button { padding: 5px 8px; font-weight: 600; font-size: 12px; color: var(--text-2); background: var(--fill); }
 .year-row button.on { color: #fff; background: var(--fill-on); }
+
+/* ---------- area selection ---------- */
+.select-box { position: absolute; z-index: 3; pointer-events: none; border: 2px dashed #5eead4; background: rgba(94, 234, 212, .12); }
+.select-hint { padding: 6px 14px; font-size: 12px; color: var(--accent); }
+.zoom button.pick.on { background: rgba(94, 234, 212, .16); color: var(--accent); }
+.panel.inspector { min-height: 430px; }

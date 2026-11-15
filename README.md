@@ -39,6 +39,9 @@ Requires Node 20.19+ or 22.12+. No API keys are needed for the map.
 - Risks: after a forecast, the inspector lists four risks (vegetation loss, flood, drought and fire, unusual change)
   with level, evidence and the land cover recognised by the pre-trained backend model, and the point's marker on the map
   takes the color of the overall level.
+- Area selection works on the flat and on the tilted 3D map: the Area button (map controls or inspector) or Shift+drag draws a
+  rectangle on the screen, its four corners are put on the ground, the box follows the mouse, Esc cancels, and releasing the
+  button outside the map still finishes it.
 - Natural disaster simulations (earthquake, flood, wildfire, storm): pick a point, set a few parameters and the damage
   zones grow on the map with their area in km² and, when zoomed in, the buildings inside each zone (`src/lib/disasters.ts`
   documents the models). They are what-ifs, labeled as simulations. Each plays its own sound.

@@ -27,6 +27,17 @@ const initialOverlays = Object.fromEntries(
   OVERLAYS.map((o) => [o.id, { on: false, opacity: o.opacity }]),
 ) as OverlayState
 
+/** Size (km), the radar window (m) and the center of an area; a rectangle drawn on a tilted map is measured by its ground corners. */
+function sizeOf(a: Area) {
+  const c = a.corners
+  const lat = c ? c.reduce((s, p) => s + p[1], 0) / 4 : (a.north + a.south) / 2
+  const lon = c ? c.reduce((s, p) => s + p[0], 0) / 4 : (a.east + a.west) / 2
+  const km = (p: [number, number], q: [number, number]) => Math.hypot((q[0] - p[0]) * 111.32 * Math.cos((lat * Math.PI) / 180), (q[1] - p[1]) * 110.57)
+  const w = c ? km(c[0], c[1]) : (a.east - a.west) * 111.32 * Math.cos((lat * Math.PI) / 180)
+  const h = c ? km(c[1], c[2]) : (a.north - a.south) * 110.57
+  return { w, h, lon, lat, windowM: Math.min(5000, Math.max(500, (Math.min(w, h) * 1000) / 2)) }
+}
+
 export default function App() {
   const { t } = useI18n()
   const [baseId, setBaseId] = useState<BaseId>('satellite')
@@ -101,13 +112,7 @@ export default function App() {
 
   // Series are read from the backend only for the days around the timeline date, when a point is picked.
   const dateMs = msFromIndex(committed)
-  const areaKm = useMemo(() => {
-    if (!area) return null
-    const lat = (area.north + area.south) / 2
-    const w = (area.east - area.west) * 111.32 * Math.cos((lat * Math.PI) / 180)
-    const h = (area.north - area.south) * 110.57
-    return { w, h, windowM: Math.min(5000, Math.max(500, (Math.min(w, h) * 1000) / 2)) }
-  }, [area])
+  const areaKm = useMemo(() => (area ? sizeOf(area) : null), [area])
   const windowM = areaKm?.windowM ?? 500
   const live = useLiveSeries(inspected, dateMs, LATEST_IMAGERY, windowM)
   const rain = useRain(inspected, dateMs, LATEST_IMAGERY)
@@ -131,20 +136,18 @@ export default function App() {
   const mapArea = area ?? (region ? { west: region.info.bounds[0], south: region.info.bounds[1], east: region.info.bounds[2], north: region.info.bounds[3] } : null)
 
   const onArea = (a: Area) => {
-    const lat = (a.north + a.south) / 2
-    const w = (a.east - a.west) * 111.32 * Math.cos((lat * Math.PI) / 180)
-    const h = (a.north - a.south) * 110.57
+    const { w, h, lon, lat } = sizeOf(a)
     setSelectMode(false)
     setRegion(null)
     setSelectedPinId(null)
     sound.ping()
     if (Math.max(w, h) < 0.4) { // a click, not a drag
       setArea(null)
-      setInspected({ lon: (a.east + a.west) / 2, lat })
+      setInspected({ lon, lat })
       return
     }
     setArea(a)
-    setInspected({ lon: (a.east + a.west) / 2, lat })
+    setInspected({ lon, lat })
   }
 
   const openRegion = async (id: string | null) => {
@@ -288,6 +291,8 @@ export default function App() {
         onZoomOut={() => setCommand({ tick: ++tick.current, type: 'zoomOut' })}
         onNorth={() => setCommand({ tick: ++tick.current, type: 'north' })}
         onTilt={() => setCommand({ tick: ++tick.current, type: 'tilt' })}
+        selecting={selectMode}
+        onSelect={() => setSelectMode((v) => !v)}
       />
       <Timeline
         index={index}

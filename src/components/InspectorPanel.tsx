@@ -229,7 +229,6 @@ export default function InspectorPanel(p: Props) {
               <button className={!p.selectMode ? 'on' : ''} onClick={() => p.onSelectMode(false)}>{t('Point')}</button>
               <button className={p.selectMode ? 'on' : ''} onClick={() => p.onSelectMode(true)}>{t('Area')}</button>
             </div>
-            {p.selectMode && <p className="caption">{t('Drag a rectangle on the map.')}</p>}
             {p.inspected ? (
               <>
                 <div className="point">
