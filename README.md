@@ -22,7 +22,7 @@ Page Down; the left arrow goes back), progress ticks you can click, and a narrat
 
 | Route | What it is |
 |---|---|
-| `/` | Presentation of the project (12 pages): the problem, what was built, the data, the layers, time, the forecast, risks, ready-made regions, simulations, the honest wording. It ends by leading to the satellite deck. |
+| `/` | Presentation of the project (15 pages, short narrations): the problem, NISAR, pixels and dates, the machine learning and its proof, the observatory (map, layers, time, risks, ready-made regions), the Amazon's impact on the rest of South America, the honest wording. It ends at the map. |
 | `/satelite` | The satellite deck "Dancing with the SARs" (11 pages): NISAR, its history, the radar echo, pixels, two dates and a change threshold, what to write on the map, rain and its lag, the model, the honest wording. It ends by leading to the map. |
 | `/tecnico` | Data and methods: the technical record. Headline numbers, every data product and how it is read, the cleaning pipeline, the forecast and risk models, the land-cover test, the limits we state ourselves, and sources. Linked from the map's footer. |
 | `/mapa` | The observatory (3D map, layers, forecast, risks, simulations, air currents, AI bar). Both decks end with an "Open the map" button that lands here. |

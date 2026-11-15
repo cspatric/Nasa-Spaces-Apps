@@ -4,7 +4,7 @@
 // The key is read from the environment only and never written anywhere.
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const KEY = process.env.CARTESIA_API_KEY
@@ -40,5 +40,8 @@ for (const r of rows) {
   console.log('made ', name, r.text.length, 'chars')
   writeFileSync(manifestPath, JSON.stringify(manifest, null, 1))
 }
+// recordings of pages that no longer exist are removed, so the folder always matches the decks
+const wanted = new Set(rows.map((r) => `${r.deck}-${r.id}.mp3`))
+for (const f of readdirSync(dir)) if (f.endsWith('.mp3') && !wanted.has(f)) { unlinkSync(join(dir, f)); delete manifest[f]; console.log('prune', f) }
 writeFileSync(manifestPath, JSON.stringify(manifest, null, 1))
 console.log(`done; ${chars} characters synthesised`)

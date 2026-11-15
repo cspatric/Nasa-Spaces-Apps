@@ -2,7 +2,7 @@ import type { Step } from '../components/Deck'
 import { T } from './helpers'
 import { OWN } from './projectOwn'
 import { SATELLITE_STEPS } from './satelliteSteps'
-import { AskMock, Flow, Tiles } from './visuals'
+import { Tiles } from './visuals'
 import { ENGINE_STEPS, withStory } from './projectStory'
 
 const own = (id: string) => OWN.find((s) => s.id === id)!
@@ -23,7 +23,6 @@ export const PROJECT_STEPS: Step[] = withStory([
   },
   own('problem'),
   sat('meet'),
-  sat('echo'),
   ENGINE_STEPS.pixels,
   sat('dates'),
   ENGINE_STEPS.ml,
@@ -45,45 +44,11 @@ export const PROJECT_STEPS: Step[] = withStory([
       ]} />
     ),
   },
-  own('numbers'),
   own('layers'),
-  {
-    id: 'wind',
-    kicker: T('Air currents', 'Correntes de ar', 'Corrientes de aire'),
-    title: T('The air moves too', 'O ar também se move', 'El aire también se mueve'),
-    fig: T('Wind at 850 hPa over the basin', 'Vento a 850 hPa sobre a bacia', 'Viento a 850 hPa sobre la cuenca'),
-    narration: T(
-      'The Amazon makes a good part of its own weather, and the air that moves over it matters. On the map you can switch on the air currents: thousands of small particles drawn along the real wind, about one and a half kilometres up, read live from Open-Meteo. The trade winds carry moisture from the Atlantic into the basin, the so-called flying rivers. When you watch the currents flow, you are watching where the rain-carrying air comes from, and why a dry spell can turn into a fire risk.',
-      'A Amazônia produz boa parte do próprio clima, e o ar que se move sobre ela importa. No mapa você pode ligar as correntes de ar: milhares de pequenas partículas desenhadas ao longo do vento real, a cerca de um quilômetro e meio de altura, lido ao vivo do Open-Meteo. Os ventos alísios levam umidade do Atlântico para dentro da bacia, os chamados rios voadores. Quando você vê as correntes fluírem, está vendo de onde vem o ar que carrega a chuva, e por que uma seca pode virar risco de queimada.',
-      'El Amazonas produce buena parte de su propio clima, y el aire que se mueve sobre él importa. En el mapa puedes encender las corrientes de aire: miles de pequeñas partículas dibujadas a lo largo del viento real, a unos mil quinientos metros de altura, leído en vivo de Open-Meteo. Los vientos alisios llevan humedad del Atlántico a la cuenca, los llamados ríos voladores. Cuando ves fluir las corrientes, ves de dónde viene el aire que carga la lluvia, y por qué una sequía puede convertirse en riesgo de incendio.'),
-    render: () => <Flow />,
-  },
   own('time'),
-  own('forecast'),
   own('risks'),
   own('regions'),
-  {
-    id: 'assistant',
-    kicker: T('Assistant', 'Assistente', 'Asistente'),
-    title: T('Just ask', 'É só perguntar', 'Solo pregunta'),
-    fig: T('The AI button on the map', 'O botão de IA no mapa', 'El botón de IA en el mapa'),
-    narration: T(
-      'You do not have to hunt through menus. On the map there is an AI button, or you can press Control K. A bar opens in the middle of the screen, with the map blurred behind it. Type what you want, in English, Portuguese or Spanish: fly to Manaus, show rain and temperature, open the Amazon forecast, simulate a magnitude seven earthquake here. If you connect an AI key on the backend, it also answers open questions about the project.',
-      'Você não precisa caçar menus. No mapa há um botão de IA, ou você pode apertar Control K. Uma barra abre no meio da tela, com o mapa desfocado atrás. Digite o que quer, em inglês, português ou espanhol: ir para Manaus, mostrar chuva e temperatura, abrir a previsão da Amazônia, simular um terremoto de magnitude sete aqui. Se você conectar uma chave de IA no backend, ele também responde perguntas abertas sobre o projeto.',
-      'No tienes que buscar entre menús. En el mapa hay un botón de IA, o puedes pulsar Control K. Se abre una barra en medio de la pantalla, con el mapa desenfocado detrás. Escribe lo que quieras, en inglés, portugués o español: ir a Manaos, mostrar lluvia y temperatura, abrir el pronóstico del Amazonas, simular un terremoto de magnitud siete aquí. Si conectas una clave de IA en el backend, también responde preguntas abiertas sobre el proyecto.'),
-    render: () => (
-      <AskMock lines={[
-        T('Fly to Manaus', 'Ir para Manaus', 'Ir a Manaos'),
-        T('Show rain and temperature', 'Mostrar chuva e temperatura', 'Mostrar lluvia y temperatura'),
-        T('Open the Amazon forecast', 'Abrir a previsão da Amazônia', 'Abrir el pronóstico del Amazonas'),
-        T('Simulate a magnitude 7 earthquake here', 'Simular um terremoto de magnitude 7 aqui', 'Simular un terremoto de magnitud 7 aquí'),
-        T('Turn on the air currents', 'Ligar as correntes de ar', 'Encender las corrientes de aire'),
-      ]} />
-    ),
-  },
-  own('whatif'),
   ENGINE_STEPS.impact,
-  sat('claims'),
   own('honest'),
   {
     id: 'next', solo: true,

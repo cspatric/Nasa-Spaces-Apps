@@ -10,13 +10,77 @@ import { ImpactList, MlStory, PixelMatrix, Scorecard } from './visuals2'
 
 export const PROJECT_CHAPTERS: Chapter[] = [
   { label: T('Problem', 'Problema', 'Problema'), ids: ['cover', 'problem'] },
-  { label: T('Instrument', 'Instrumento', 'Instrumento'), ids: ['meet', 'echo', 'pixels', 'dates'] },
+  { label: T('Instrument', 'Instrumento', 'Instrumento'), ids: ['meet', 'pixels', 'dates'] },
   { label: T('Engine', 'Motor', 'Motor'), ids: ['ml', 'validate'] },
-  { label: T('Observatory', 'Observatório', 'Observatorio'), ids: ['built', 'numbers', 'layers', 'wind', 'time', 'forecast', 'risks', 'regions', 'assistant', 'whatif'] },
+  { label: T('Observatory', 'Observatório', 'Observatorio'), ids: ['built', 'layers', 'time', 'risks', 'regions'] },
   { label: T('Impact', 'Impacto', 'Impacto'), ids: ['impact'] },
-  { label: T('Trust', 'Confiança', 'Confianza'), ids: ['claims', 'honest'] },
+  { label: T('Trust', 'Confiança', 'Confianza'), ids: ['honest'] },
   { label: T('Act', 'Agir', 'Actuar'), ids: ['next'] },
 ]
+
+/** One short narration per page (a few sentences: what the page says, no more). The voice reads the same text. */
+const N: Record<string, Step['narration']> = {
+  cover: T(
+    'Forests, rivers and cities change faster than anyone can watch, and clouds hide the ground. When something goes wrong we learn too late. SARIS is our answer: radar that sees through clouds, a model that learns what is normal, and a map to act on it.',
+    'Florestas, rios e cidades mudam mais rápido do que alguém consegue acompanhar, e as nuvens escondem o chão. Quando algo dá errado, ficamos sabendo tarde. O SARIS é a nossa resposta: um radar que enxerga através das nuvens, um modelo que aprende o que é normal e um mapa para agir.',
+    'Bosques, ríos y ciudades cambian más rápido de lo que nadie puede vigilar, y las nubes esconden el suelo. Cuando algo sale mal, nos enteramos tarde. SARIS es nuestra respuesta: un radar que ve a través de las nubes, un modelo que aprende lo que es normal y un mapa para actuar.'),
+  problem: T(
+    'Did a patch of forest fall last week? An ordinary satellite takes a photo, but over the Amazon the clouds make it come back white. Radar sends its own pulse and listens to the echo, so clouds and night do not matter.',
+    'Um pedaço de floresta caiu na semana passada? Um satélite comum tira uma foto, mas sobre a Amazônia as nuvens a deixam branca. O radar envia o próprio pulso e escuta o eco, então nuvens e noite não importam.',
+    '¿Cayó un trozo de selva la semana pasada? Un satélite común toma una foto, pero sobre el Amazonas las nubes la dejan blanca. El radar envía su propio pulso y escucha el eco, así que nubes y noche no importan.'),
+  meet: T(
+    'This is NISAR, built by NASA and ISRO, with a 12-metre radar dish. Its long L-band wavelength goes deep into a forest and feels trunks and branches, not only leaves.',
+    'Este é o NISAR, feito pela NASA e pela ISRO, com uma antena de radar de 12 metros. Sua onda longa, a banda L, entra fundo na floresta e sente troncos e galhos, não só folhas.',
+    'Este es NISAR, construido por la NASA y la ISRO, con una antena de radar de 12 metros. Su onda larga, la banda L, entra hondo en la selva y siente troncos y ramas, no solo hojas.'),
+  pixels: T(
+    'A radar image is a grid of numbers: each pixel is how much of the pulse came back. We convert it to decibels, ten times the logarithm, so dark means a weak echo, like calm water, and bright means a strong one. Click a pixel to see both values.',
+    'Uma imagem de radar é uma grade de números: cada pixel é quanto do pulso voltou. Convertemos em decibéis, dez vezes o logaritmo, então escuro é eco fraco, como água parada, e claro é eco forte. Clique em um pixel para ver os dois valores.',
+    'Una imagen de radar es una cuadrícula de números: cada píxel es cuánto del pulso volvió. Lo convertimos en decibelios, diez veces el logaritmo, así que oscuro es eco débil, como agua quieta, y claro es eco fuerte. Haz clic en un píxel para ver los dos valores.'),
+  dates: T(
+    'Change is invisible in one image, so we compare two dates and set a threshold. Too low and noise lights up; too high and the real change disappears. Choosing it is a scientific decision.',
+    'A mudança é invisível numa imagem só, então comparamos duas datas e definimos um limiar. Baixo demais, o ruído acende; alto demais, a mudança real some. Escolhê-lo é uma decisão científica.',
+    'El cambio es invisible en una sola imagen, así que comparamos dos fechas y fijamos un umbral. Muy bajo, el ruido se enciende; muy alto, el cambio real desaparece. Elegirlo es una decisión científica.'),
+  ml: T(
+    'This is the core. For each place the model learns what is normal: the yearly rhythm of radar and rain over ten years. It expects the coming months, and flags months that stay outside the band when rain does not explain them.',
+    'Este é o núcleo. Para cada lugar o modelo aprende o que é normal: o ritmo anual de radar e chuva ao longo de dez anos. Ele espera os próximos meses e sinaliza os meses que ficam fora da faixa quando a chuva não explica.',
+    'Este es el núcleo. Para cada lugar el modelo aprende lo que es normal: el ritmo anual de radar y lluvia durante diez años. Espera los próximos meses y señala los meses que quedan fuera de la banda cuando la lluvia no lo explica.'),
+  validate: T(
+    'A model has to earn its place. We compare it with a simple rule, the same-month average, on places and years it never saw, in sixteen rounds. It reaches the map only if it wins, and the scorecard shows both.',
+    'Um modelo precisa merecer o seu lugar. Comparamos com uma regra simples, a média do mesmo mês, em lugares e anos que ele nunca viu, em dezesseis rodadas. Só chega ao mapa se vencer, e o placar mostra os dois.',
+    'Un modelo tiene que ganarse su lugar. Lo comparamos con una regla simple, el promedio del mismo mes, en lugares y años que nunca vio, en dieciséis rondas. Solo llega al mapa si gana, y el marcador muestra ambos.'),
+  built: T(
+    'Here is the observatory: a 3D map of South and Central America, live radar and rain, a timeline to 2030 and an assistant you can simply talk to.',
+    'Aqui está o observatório: um mapa 3D da América do Sul e Central, radar e chuva ao vivo, uma linha do tempo até 2030 e um assistente com quem você pode simplesmente conversar.',
+    'Aquí está el observatorio: un mapa 3D de Sudamérica y Centroamérica, radar y lluvia en vivo, una línea de tiempo hasta 2030 y un asistente con el que puedes simplemente hablar.'),
+  layers: T(
+    'Every NASA dataset is a layer, and each keeps one color at any zoom: violet is always rain. You never have to guess what you are looking at.',
+    'Cada conjunto de dados da NASA é uma camada, e cada uma mantém uma só cor em qualquer zoom: violeta é sempre chuva. Você nunca precisa adivinhar o que está vendo.',
+    'Cada conjunto de datos de la NASA es una capa, y cada una mantiene un solo color en cualquier zoom: violeta es siempre lluvia. Nunca tienes que adivinar lo que ves.'),
+  time: T(
+    'Until today you see real data; after it, everything is a scenario, drawn with stripes and never shown as a real image.',
+    'Até hoje você vê dados reais; depois, tudo é cenário, desenhado com listras e nunca apresentado como imagem real.',
+    'Hasta hoy ves datos reales; después, todo es escenario, dibujado con rayas y nunca mostrado como imagen real.'),
+  risks: T(
+    'From the same history the model reads four risks: vegetation loss, flood, drought and fire, and unusual change. They are screening signals: where to look first, not what will happen.',
+    'Do mesmo histórico o modelo lê quatro riscos: perda de vegetação, enchente, seca e queimada, e mudança incomum. São sinais de triagem: onde olhar primeiro, não o que vai acontecer.',
+    'Del mismo historial el modelo lee cuatro riesgos: pérdida de vegetación, inundación, sequía e incendio, y cambio inusual. Son señales de cribado: dónde mirar primero, no lo que va a pasar.'),
+  regions: T(
+    'To save the wait, three regions are prepared ahead: the Amazon, São Paulo and Rio Grande do Sul. The map shows the riskiest sample place, so a hot spot is never averaged away.',
+    'Para poupar a espera, três regiões vêm preparadas: a Amazônia, São Paulo e o Rio Grande do Sul. O mapa mostra o lugar de amostra mais arriscado, então um ponto crítico nunca some na média.',
+    'Para ahorrar la espera, tres regiones vienen preparadas: el Amazonas, São Paulo y Rio Grande do Sul. El mapa muestra el lugar de muestra más arriesgado, así que un punto crítico nunca se pierde en el promedio.'),
+  impact: T(
+    'The Amazon exhales moisture, and winds carry it south and west to the Andes, São Paulo, Rio Grande do Sul and the Plata basin. Studies link the forest to rain far downwind, so what changes in one place is read in the others.',
+    'A Amazônia solta umidade, e os ventos a levam para o sul e o oeste, até os Andes, São Paulo, o Rio Grande do Sul e a bacia do Prata. Estudos ligam a floresta à chuva muito além, então o que muda em um lugar é lido nos outros.',
+    'El Amazonas exhala humedad, y los vientos la llevan al sur y al oeste, hasta los Andes, São Paulo, Rio Grande do Sul y la cuenca del Plata. Los estudios vinculan el bosque con la lluvia muy a sotavento, así que lo que cambia en un lugar se lee en los otros.'),
+  honest: T(
+    'A promise about wording. We say the radar response changed, a forecast has a band, a scenario is uncertain. We never say a satellite detected deforestation, or a place will flood.',
+    'Uma promessa sobre as palavras. Dizemos que a resposta do radar mudou, que a previsão tem faixa, que o cenário é incerto. Nunca dizemos que um satélite detectou desmatamento, nem que um lugar vai alagar.',
+    'Una promesa sobre las palabras. Decimos que la respuesta del radar cambió, que el pronóstico tiene banda, que el escenario es incierto. Nunca decimos que un satélite detectó deforestación, ni que un lugar se va a inundar.'),
+  next: T(
+    'That is the problem and our answer. Now it is your turn: open the map, pick a place, and ask it what is changing.',
+    'Esse é o problema e a nossa resposta. Agora é a sua vez: abra o mapa, escolha um lugar e pergunte o que está mudando.',
+    'Ese es el problema y nuestra respuesta. Ahora es tu turno: abre el mapa, elige un lugar y pregunta qué está cambiando.'),
+}
 
 /** The new pages of the engine chapter and the closing impact page. */
 export const ENGINE_STEPS: Record<string, Step> = {
@@ -24,40 +88,28 @@ export const ENGINE_STEPS: Record<string, Step> = {
     id: 'pixels',
     kicker: T('The echo, as numbers', 'O eco, em números', 'El eco, en números'),
     title: T('A radar image is a grid of numbers', 'Uma imagem de radar é uma grade de números', 'Una imagen de radar es una cuadrícula de números'),
-    narration: T(
-      'Now let us see what the machine actually receives. A radar image is not a photo, it is a grid of numbers: each pixel stores how much of the pulse came back. That raw value is linear and spans a huge range, so we convert it to decibels, ten times the base ten logarithm. In decibels, a dark pixel means little came back, like calm water, and a bright one means a lot, like a roof or a tree trunk. Click any pixel to see both values.',
-      'Agora vamos ver o que a máquina realmente recebe. Uma imagem de radar não é uma foto, é uma grade de números: cada pixel guarda quanto do pulso voltou. Esse valor bruto é linear e cobre uma faixa enorme, então o convertemos em decibéis, dez vezes o logaritmo na base dez. Em decibéis, um pixel escuro quer dizer que voltou pouco, como água parada, e um claro quer dizer que voltou muito, como um telhado ou um tronco. Clique em qualquer pixel para ver os dois valores.',
-      'Ahora veamos qué recibe realmente la máquina. Una imagen de radar no es una foto, es una cuadrícula de números: cada píxel guarda cuánto del pulso volvió. Ese valor bruto es lineal y abarca un rango enorme, así que lo convertimos en decibelios, diez veces el logaritmo en base diez. En decibelios, un píxel oscuro significa que volvió poco, como agua quieta, y uno claro que volvió mucho, como un techo o un tronco. Haz clic en cualquier píxel para ver los dos valores.'),
+    narration: N.pixels,
     render: () => <PixelMatrix />,
   },
   ml: {
     id: 'ml',
     kicker: T('The analysis · machine learning', 'A análise · aprendizado de máquina', 'El análisis · aprendizaje automático'),
     title: T('The model learns what is normal', 'O modelo aprende o que é normal', 'El modelo aprende lo que es normal'),
-    narration: T(
-      'This is the heart of the project. For each place, the model learns what is normal: the yearly rhythm of the radar and of the rain, month by month, over ten years. Then it asks two questions. What should this place look like in the coming months? And did a month fall outside what is normal? When the radar leaves the expected band for a long time, and the rain does not explain it, that place gets a high score. Watch the three stages, or click one.',
-      'Este é o coração do projeto. Para cada lugar, o modelo aprende o que é normal: o ritmo anual do radar e da chuva, mês a mês, ao longo de dez anos. Depois faz duas perguntas. Como este lugar deve estar nos próximos meses? E algum mês saiu do que é normal? Quando o radar sai da faixa esperada por muito tempo, e a chuva não explica, aquele lugar recebe uma nota alta. Acompanhe as três etapas, ou clique em uma.',
-      'Este es el corazón del proyecto. Para cada lugar, el modelo aprende lo que es normal: el ritmo anual del radar y de la lluvia, mes a mes, durante diez años. Luego hace dos preguntas. ¿Cómo debería estar este lugar en los próximos meses? ¿Y algún mes se salió de lo normal? Cuando el radar sale de la banda esperada por mucho tiempo, y la lluvia no lo explica, ese lugar recibe una nota alta. Mira las tres etapas, o haz clic en una.'),
+    narration: N.ml,
     render: () => <MlStory />,
   },
   validate: {
     id: 'validate',
     kicker: T('The proof', 'A prova', 'La prueba'),
     title: T('A model has to earn its place', 'Um modelo precisa merecer o seu lugar', 'Un modelo tiene que ganarse su lugar'),
-    narration: T(
-      'A clever model can still be wrong, so it has to earn its place. We always compare it with a simple rule: the average of the same month in past years. And we test on places and years the model has never seen, sixteen rounds, each with a different draw. The model only reaches the map if it beats the rule. Then three results come out: an anomaly layer on the map, a chart with the expected range, and a scorecard with the model and the rule side by side.',
-      'Um modelo esperto ainda pode errar, então ele precisa merecer o seu lugar. Nós sempre o comparamos com uma regra simples: a média do mesmo mês em anos passados. E testamos em lugares e anos que o modelo nunca viu, dezesseis rodadas, cada uma com um sorteio diferente. O modelo só chega ao mapa se vencer a regra. Aí saem três resultados: uma camada de anomalia no mapa, um gráfico com a faixa esperada e um placar com o modelo e a regra lado a lado.',
-      'Un modelo astuto aún puede equivocarse, así que tiene que ganarse su lugar. Siempre lo comparamos con una regla simple: el promedio del mismo mes en años pasados. Y probamos en lugares y años que el modelo nunca vio, dieciséis rondas, cada una con un sorteo distinto. El modelo solo llega al mapa si supera la regla. Entonces salen tres resultados: una capa de anomalía en el mapa, un gráfico con el rango esperado y un marcador con el modelo y la regla lado a lado.'),
+    narration: N.validate,
     render: () => <Scorecard />,
   },
   impact: {
     id: 'impact',
     kicker: T('Beyond one forest', 'Além de uma floresta', 'Más allá de un bosque'),
     title: T('The Amazon reaches the rest of South America', 'A Amazônia alcança o resto da América do Sul', 'El Amazonas llega al resto de Sudamérica'),
-    narration: T(
-      'Finally, why this matters beyond one forest. The Amazon breathes out moisture, and the winds carry it south and west, rivers of vapour in the sky. It feeds the Andes, it rains on the centre and southeast of Brazil, on São Paulo, and it reaches the south and the Plata basin. Studies link the forest to rain far downwind, so when it changes, the rain can change too. That is why our map forecasts São Paulo and Rio Grande do Sul beside the Amazon: what happens in one is read in the others.',
-      'Por fim, por que isso importa além de uma floresta. A Amazônia solta umidade, e os ventos a levam para o sul e o oeste, rios de vapor no céu. Ela alimenta os Andes, faz chover no centro e no sudeste do Brasil, em São Paulo, e chega ao sul e à bacia do Prata. Estudos ligam a floresta à chuva muito além, então quando ela muda, a chuva também pode mudar. Por isso o nosso mapa prevê São Paulo e o Rio Grande do Sul ao lado da Amazônia: o que acontece em uma é lido nas outras.',
-      'Por último, por qué esto importa más allá de un bosque. El Amazonas exhala humedad, y los vientos la llevan al sur y al oeste, ríos de vapor en el cielo. Alimenta los Andes, llueve en el centro y el sudeste de Brasil, en São Paulo, y llega al sur y a la cuenca del Plata. Los estudios vinculan el bosque con la lluvia muy a sotavento, así que cuando cambia, la lluvia también puede cambiar. Por eso nuestro mapa pronostica São Paulo y Rio Grande do Sul junto al Amazonas: lo que pasa en uno se lee en los otros.'),
+    narration: N.impact,
     render: () => <ImpactList />,
   },
 }
@@ -86,26 +138,6 @@ export const PA: Record<string, { p: Step['problem']; a: Step['answer'] }> = {
   honest: { p: T('A model that is sure of everything is lying', 'Um modelo seguro de tudo está mentindo', 'Un modelo seguro de todo está mintiendo'), a: T('Say what we know, what we guess, and what we do not know', 'Dizer o que sabemos, o que supomos e o que não sabemos', 'Decir lo que sabemos, lo que suponemos y lo que no sabemos') },
 }
 
-/** Narrations rewritten so the whole deck reads as one argument: here is a problem, here is how we solve it. */
-export const STORY_NARRATION: Record<string, Step['narration']> = {
-  cover: T(
-    'Every year, forests, rivers and cities change faster than anyone can watch. When something goes wrong, a clearing, a flood, a fire, we often learn too late: clouds hide the ground, the data is scattered, and nobody can tell what is real from what is a guess. SARIS is our answer. In a few minutes I will show you the problem, the satellite that cracks it, the machine learning at the core, and the observatory we built on top.',
-    'Todo ano, florestas, rios e cidades mudam mais rápido do que alguém consegue acompanhar. Quando algo dá errado, um desmatamento, uma enchente, um incêndio, muitas vezes ficamos sabendo tarde demais: as nuvens escondem o chão, os dados estão espalhados e ninguém distingue o que é real do que é palpite. O SARIS é a nossa resposta. Em poucos minutos vou mostrar o problema, o satélite que o resolve, o aprendizado de máquina no centro e o observatório que construímos em cima.',
-    'Cada año, bosques, ríos y ciudades cambian más rápido de lo que nadie puede vigilar. Cuando algo sale mal, una tala, una inundación, un incendio, muchas veces nos enteramos tarde: las nubes esconden el suelo, los datos están dispersos y nadie distingue lo real de una suposición. SARIS es nuestra respuesta. En unos minutos te mostraré el problema, el satélite que lo resuelve, el aprendizaje automático del centro y el observatorio que construimos encima.'),
-  problem: T(
-    'Imagine you need to know whether a patch of forest was cleared last week. A normal satellite takes a photo, but over the Amazon the clouds are there most of the year, so the photo comes back white, exactly when you most need to know. Radar solves the first half of the problem. It sends its own pulse and listens to the echo, so clouds do not matter, and it works at night too.',
-    'Imagine que você precisa saber se um pedaço de floresta foi derrubado na semana passada. Um satélite comum tira uma foto, mas sobre a Amazônia as nuvens estão lá quase o ano todo, e a foto volta branca, justo quando você mais precisa saber. O radar resolve a primeira metade do problema. Ele envia o próprio pulso e escuta o eco, então as nuvens não importam, e ele funciona de noite também.',
-    'Imagina que necesitas saber si un trozo de selva fue talado la semana pasada. Un satélite normal toma una foto, pero sobre el Amazonas las nubes están casi todo el año, y la foto vuelve blanca, justo cuando más necesitas saberlo. El radar resuelve la primera mitad del problema. Envía su propio pulso y escucha el eco, así que las nubes no importan, y funciona también de noche.'),
-  built: T(
-    'Seeing is only half of it, people have to act on what they see. So here is the observatory, in four parts. A 3D map of South and Central America, with real relief, buildings and streets. Live data, read at the moment you ask, around the date you choose. A timeline that goes to 2030, where observed data and scenarios never get mixed. And an assistant you can simply talk to.',
-    'Enxergar é só metade, as pessoas precisam agir sobre o que veem. Então aqui está o observatório, em quatro partes. Um mapa 3D da América do Sul e Central, com relevo, prédios e ruas reais. Dados ao vivo, lidos na hora em que você pede, em torno da data que escolher. Uma linha do tempo que vai até 2030, onde dados observados e cenários nunca se misturam. E um assistente com quem você pode simplesmente conversar.',
-    'Ver es solo la mitad, la gente tiene que actuar sobre lo que ve. Así que aquí está el observatorio, en cuatro partes. Un mapa 3D de Sudamérica y Centroamérica, con relieve, edificios y calles reales. Datos en vivo, leídos en el momento en que los pides, alrededor de la fecha que elijas. Una línea de tiempo que llega a 2030, donde datos observados y escenarios nunca se mezclan. Y un asistente con el que puedes simplemente hablar.'),
-  next: T(
-    'That is the problem and our answer: see through the clouds, learn what is normal, flag what is not, look ahead with an honest band, and read the Amazon together with the regions it feeds. Now it is your turn. Press the button to open the map, pick a place, and ask it what is changing.',
-    'Esse é o problema e a nossa resposta: enxergar através das nuvens, aprender o que é normal, sinalizar o que não é, olhar à frente com uma faixa honesta e ler a Amazônia junto com as regiões que ela alimenta. Agora é a sua vez. Aperte o botão para abrir o mapa, escolha um lugar e pergunte o que está mudando.',
-    'Ese es el problema y nuestra respuesta: ver a través de las nubes, aprender lo que es normal, señalar lo que no lo es, mirar adelante con una banda honesta y leer el Amazonas junto con las regiones que alimenta. Ahora es tu turno. Pulsa el botón para abrir el mapa, elige un lugar y pregunta qué está cambiando.'),
-}
-
 const SAT_PA: Record<string, { p: Step['problem']; a: Step['answer'] }> = {
   honest: { p: T('We find out about change only after the damage', 'Só sabemos da mudança depois do dano', 'Solo nos enteramos del cambio tras el daño'), a: T('See it early, through the clouds, with honest limits', 'Enxergar cedo, através das nuvens, com limites honestos', 'Verlo a tiempo, a través de las nubes, con límites honestos') },
   rain: { p: T('Rain alone can fake a change', 'A chuva sozinha pode fingir uma mudança', 'La lluvia sola puede fingir un cambio'), a: T('Compare the signal with the rain, and its lag', 'Comparar o sinal com a chuva e a sua defasagem', 'Comparar la señal con la lluvia y su desfase') },
@@ -124,5 +156,5 @@ export function withProblems(steps: Step[]): Step[] {
 
 /** Adds the problem and solution lines and the rewritten narrations. */
 export function withStory(steps: Step[]): Step[] {
-  return steps.map((s) => ({ ...s, narration: STORY_NARRATION[s.id] ?? s.narration, problem: PA[s.id]?.p, answer: PA[s.id]?.a }))
+  return steps.map((s) => ({ ...s, narration: N[s.id] ?? s.narration, problem: PA[s.id]?.p, answer: PA[s.id]?.a }))
 }
