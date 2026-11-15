@@ -1,10 +1,10 @@
 {
- "project-cover.mp3": "d8a9d27551ea",
- "project-problem.mp3": "41d68d2b7223",
+ "project-cover.mp3": "494c4bb7dfae",
+ "project-problem.mp3": "c7a4fd6df4a9",
  "project-meet.mp3": "621cd4899a81",
  "project-echo.mp3": "7b465baed166",
  "project-dates.mp3": "437f537e3594",
- "project-built.mp3": "120707b1b9a4",
+ "project-built.mp3": "098d7c927fa0",
  "project-numbers.mp3": "9c1352a25313",
  "project-layers.mp3": "429632412e1d",
  "project-wind.mp3": "089e26967f52",
@@ -16,7 +16,7 @@
  "project-whatif.mp3": "72d1e2438410",
  "project-claims.mp3": "334d2e811feb",
  "project-honest.mp3": "6af349794932",
- "project-next.mp3": "881cf31c3850",
+ "project-next.mp3": "f673422d8a43",
  "satellite-cover.mp3": "cc96cc541f81",
  "satellite-meet.mp3": "621cd4899a81",
  "satellite-history.mp3": "502c96b7df43",
@@ -27,5 +27,9 @@
  "satellite-rain.mp3": "1d069cbd0a68",
  "satellite-model.mp3": "82cac37e0399",
  "satellite-honest.mp3": "1390732e75b4",
- "satellite-next.mp3": "22e38097a74e"
+ "satellite-next.mp3": "22e38097a74e",
+ "project-pixels.mp3": "0990e30efbd8",
+ "project-ml.mp3": "86b5cc74b1cc",
+ "project-validate.mp3": "4a79ea34a768",
+ "project-impact.mp3": "93d5973c857b"
 }

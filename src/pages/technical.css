@@ -1,5 +1,5 @@
 /* Data and methods page: a scrolling reading page in the same mission-control look as the decks. */
-.tech { --bg: #04070d; --line: rgba(120, 170, 255, .16); --line2: rgba(120, 170, 255, .32); --fg: #dfe8f7; --mut: #8a99b4; --acc: #3be0c5; --amb: #e7b04a; min-height: 100vh; background: var(--bg); color: var(--fg); font: 16px/1.65 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 64px 64px; background-attachment: fixed; }
+.tech { --bg: #000; --line: rgba(120, 170, 255, .16); --line2: rgba(120, 170, 255, .32); --fg: #dfe8f7; --mut: #8a99b4; --acc: #3be0c5; --amb: #e7b04a; min-height: 100vh; background: var(--bg); color: var(--fg); font: 16px/1.65 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
 .tech * { box-sizing: border-box; }
 .tx-top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 24px; background: rgba(4, 7, 13, .92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); font: 11px ui-monospace, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--mut); }
 .tx-id { display: flex; gap: 14px; } .tx-id b { color: var(--acc); }

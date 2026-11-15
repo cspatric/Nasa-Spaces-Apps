@@ -1,11 +1,12 @@
 import Deck from '../components/Deck'
 import { T } from './helpers'
 import { SATELLITE_STEPS } from './satelliteSteps'
+import { SATELLITE_CHAPTERS, withProblems } from './projectStory'
 
 export default function SatelliteDeck() {
   return (
     <Deck
-      deck="satellite" name="NISAR · DANCING WITH THE SARS" steps={SATELLITE_STEPS}
+      deck="satellite" name="NISAR · DANCING WITH THE SARS" steps={withProblems(SATELLITE_STEPS)} chapters={SATELLITE_CHAPTERS}
       finish={{ to: '/mapa', label: T('Open the map', 'Abrir o mapa', 'Abrir el mapa') }}
       skip={{ to: '/mapa', label: T('Skip to the map', 'Ir ao mapa', 'Ir al mapa') }}
       back={{ to: '/', label: T('The project', 'O projeto', 'El proyecto') }} />

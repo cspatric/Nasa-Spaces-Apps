@@ -1,6 +1,6 @@
 import type { Step } from '../components/Deck'
 import { T } from './helpers'
-import { Claims, Dish, Echo, Metrics, ModelChoice, PixelGrid, RainLag, SayAvoid, TimelineList, TwoDates } from './visuals'
+import { Claims, Echo, Metrics, ModelChoice, PixelGrid, RainLag, SayAvoid, TimelineList, TwoDates } from './visuals'
 
 export const SATELLITE_STEPS: Step[] = [
   {
@@ -24,7 +24,6 @@ export const SATELLITE_STEPS: Step[] = [
       'Este es NISAR, un satélite construido por la NASA y la agencia espacial india. Lleva un radar con una antena de doce metros. La idea es simple: envía un pulso hacia abajo y escucha el eco. Su longitud de onda larga, la banda L, entra más hondo en la selva que otros radares, así que siente troncos y ramas, no solo hojas. Y como el radar hace su propia luz, las nubes y la noche no importan.'),
     render: () => (
       <>
-        <Dish />
         <Metrics items={[
           { n: 12, label: T('metre dish antenna', 'metros de antena', 'metros de antena') },
           { n: 12, label: T('days to revisit a spot', 'dias para revisitar um local', 'días para revisitar un lugar') },

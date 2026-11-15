@@ -40,6 +40,10 @@ export const voice = {
     start(url(e))
   },
   stop,
+  /** How far the current recording has played (0 to 1), or null when nothing is playing. */
+  progress(): number | null {
+    return audio && !audio.paused && Number.isFinite(audio.duration) && audio.duration > 0 ? audio.currentTime / audio.duration : null
+  },
   isMuted: () => muted,
   setMuted(v: boolean) {
     muted = v

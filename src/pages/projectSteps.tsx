@@ -3,6 +3,7 @@ import { T } from './helpers'
 import { OWN } from './projectOwn'
 import { SATELLITE_STEPS } from './satelliteSteps'
 import { AskMock, Flow, Tiles } from './visuals'
+import { ENGINE_STEPS, withStory } from './projectStory'
 
 const own = (id: string) => OWN.find((s) => s.id === id)!
 const sat = (id: string) => SATELLITE_STEPS.find((s) => s.id === id)!
@@ -12,7 +13,7 @@ const sat = (id: string) => SATELLITE_STEPS.find((s) => s.id === id)!
  * what SARIS builds from it (layers, air currents, time, forecast, risks, regions, assistant, simulations), and the
  * honest wording. The last step opens the map.
  */
-export const PROJECT_STEPS: Step[] = [
+export const PROJECT_STEPS: Step[] = withStory([
   {
     ...own('cover'),
     narration: T(
@@ -23,7 +24,10 @@ export const PROJECT_STEPS: Step[] = [
   own('problem'),
   sat('meet'),
   sat('echo'),
+  ENGINE_STEPS.pixels,
   sat('dates'),
+  ENGINE_STEPS.ml,
+  ENGINE_STEPS.validate,
   {
     ...own('built'),
     kicker: T('From signal to place', 'Do sinal ao lugar', 'De la señal al lugar'),
@@ -78,6 +82,7 @@ export const PROJECT_STEPS: Step[] = [
     ),
   },
   own('whatif'),
+  ENGINE_STEPS.impact,
   sat('claims'),
   own('honest'),
   {
@@ -89,4 +94,4 @@ export const PROJECT_STEPS: Step[] = [
       'Esta é a história inteira: um problema, um instrumento que enxerga através dele e um observatório que transforma o sinal em lugares, previsões e riscos, com palavras honestas. Agora é a sua vez. Aperte o botão para abrir o mapa.',
       'Esta es la historia completa: un problema, un instrumento que ve a través de él y un observatorio que convierte la señal en lugares, pronósticos y riesgos, con palabras honestas. Ahora es tu turno. Pulsa el botón para abrir el mapa.'),
   },
-]
+])
