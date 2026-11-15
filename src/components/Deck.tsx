@@ -6,6 +6,7 @@ import { IMMERSIVE } from '../lib/spaceScene'
 import { sound } from '../lib/sound'
 import { navigate } from '../router'
 import Link from './Link'
+import Logo from './Logo'
 import './deck.css'
 
 /** A text in the three languages. */
@@ -188,7 +189,7 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
       <div className="scrim" aria-hidden="true" />
 
       <header className="dk-hud mono">
-        <div className="id"><b>SARIS</b><span>{name}</span></div>
+        <div className="id"><Logo size={22} /><b>SARIS</b><span>{name}</span></div>
         {chapters && (
           <nav className="dk-chap" aria-label="Story">
             {chapters.map((c, k) => {

@@ -1,4 +1,5 @@
 import { CAMERA_PRESETS, type CameraPreset } from '../lib/catalog'
+import Logo from './Logo'
 import { useEffect, useRef, useState } from 'react'
 import { CITIES, type City } from '../lib/cities'
 import { LANGS, useI18n } from '../lib/i18n'
@@ -17,20 +18,6 @@ interface Props {
   onAssistant: () => void
   /** Data is being processed: places cannot be searched and picked. */
   locked: boolean
-}
-
-export function BrandMark({ size = 30 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
-      <rect width="32" height="32" rx="0" fill="rgba(255,255,255,.06)" />
-      <g fill="none" stroke="#5eead4" strokeLinecap="round" strokeWidth="2.2">
-        <path d="M16 5.5a10.5 10.5 0 0 1 10.5 10.5" />
-        <path d="M16 10a6 6 0 0 1 6 6" opacity=".75" />
-        <path d="M16 14a2 2 0 0 1 2 2" opacity=".5" />
-      </g>
-      <circle cx="9.5" cy="22.5" r="2.4" fill="#5eead4" />
-    </svg>
-  )
 }
 
 const TOUR = CITIES.filter((c) => c.cap)
@@ -66,7 +53,7 @@ export default function TopBar({ onFly, onCity, onPlace, leftOpen, rightOpen, on
   return (
     <header className="topbar">
       <Link className="brand glass" to="/" title="SARIS">
-        <BrandMark />
+        <Logo size={32} />
         <div className="brand-name">SARIS</div>
       </Link>
       <button className={`toggle glass ${leftOpen ? 'on' : ''}`} onClick={onLeft} aria-pressed={leftOpen}>{t('Layers')}</button>
@@ -80,6 +67,7 @@ export default function TopBar({ onFly, onCity, onPlace, leftOpen, rightOpen, on
         <CityMenu onCity={onCity} />
       </nav>
       <button className={`toggle glass ${rightOpen ? 'on' : ''}`} onClick={onRight} aria-pressed={rightOpen}>{t('Inspector')}</button>
+      <Link className="toggle glass data-link" to="/tecnico" title={t('Where the data comes from, with links, and how it is processed')}>{t('Data and sources')}</Link>
       <button className="toggle glass ai-btn" onClick={onAssistant} title={`${t('Assistant')} (Ctrl+K)`} aria-label={t('Assistant')}><span aria-hidden="true">✦</span> AI</button>
       <button className="toggle glass sound" aria-pressed={!muted} aria-label={t(muted ? 'Sound off' : 'Sound on')} title={t(muted ? 'Sound off' : 'Sound on')}
         onClick={() => { sound.setMuted(!muted); setMuted(!muted) }}>

@@ -1,5 +1,6 @@
 import { Fragment, useEffect } from 'react'
 import Link from '../components/Link'
+import Logo from '../components/Logo'
 import { LANGS, useI18n } from '../lib/i18n'
 import { T, useTx } from './helpers'
 import './technical.css'
@@ -66,17 +67,59 @@ const LIMITS = [
   T('An anomaly says that something changed, not what. Confirm with optical imagery or known event dates before calling it an event. The disaster simulations are illustrations of scale, not forecasts.', 'Uma anomalia diz que algo mudou, não o quê. Confirme com imagem óptica ou datas de eventos conhecidos antes de chamar de evento. As simulações de desastres são ilustrações de escala, não previsões.', 'Una anomalía dice que algo cambió, no qué. Confirma con imagen óptica o fechas de eventos conocidos antes de llamarlo evento. Las simulaciones de desastres son ilustraciones de escala, no pronósticos.'),
 ]
 
-const SOURCES: [string, string][] = [
-  ['NISAR mission (NASA/JPL)', 'https://nisar.jpl.nasa.gov'],
-  ['NISAR product documentation, ASF', 'https://nisar-docs.asf.alaska.edu'],
-  ['ASF DAAC, Vertex and search API', 'https://asf.alaska.edu'],
-  ['GPM IMERG, GES DISC', 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDF_07/summary'],
-  ['NASA GIBS', 'https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api'],
-  ['Sentinel-2 cloudless, EOX', 'https://s2maps.eu'],
-  ['Open-Meteo', 'https://open-meteo.com'],
-  ['AWS Terrain Tiles', 'https://registry.opendata.aws/terrain-tiles/'],
-  ['OpenFreeMap and OpenStreetMap', 'https://openfreemap.org'],
-  ['MapLibre GL JS', 'https://maplibre.org'],
+type Tri = ReturnType<typeof T>
+interface Source { name: string; by: string; use: Tri; /** The address the program really calls, so it can be checked in the network tab. */ calls: string; links: [string, string][] }
+interface SourceGroup { id: string; title: Tri; note: Tri; items: Source[] }
+
+/**
+ * Every outside source SARIS reads, with the address it calls and where to read about it. "Through the SARIS API" means
+ * the page asks the backend (asf-cleaner, an HTTP API at API_URL) and the backend asks the source; "from the browser" means
+ * the page asks the source itself.
+ */
+const SOURCE_GROUPS: SourceGroup[] = [
+  {
+    id: 'radar', title: T('Radar and rain (through the SARIS API)', 'Radar e chuva (pela API do SARIS)', 'Radar y lluvia (por la API de SARIS)'),
+    note: T('The page never talks to these archives: it asks the SARIS backend, which holds the Earthdata token, reads only the pixels it needs and streams the result.', 'A página nunca fala com estes arquivos: ela pergunta ao backend do SARIS, que guarda o token do Earthdata, lê só os pixels necessários e transmite o resultado.', 'La página nunca habla con estos archivos: pregunta al backend de SARIS, que guarda el token de Earthdata, lee solo los píxeles necesarios y transmite el resultado.'),
+    items: [
+      { name: 'NISAR L2 GCOV', by: 'NASA/JPL · ISRO · ASF DAAC', use: T('L-band radar backscatter at a point (HH, HV), from October 2025.', 'Retroespalhamento do radar banda L num ponto (HH, HV), desde outubro de 2025.', 'Retrodispersión del radar banda L en un punto (HH, HV), desde octubre de 2025.'), calls: 'api.daac.asf.alaska.edu/services/search/param (dataset=NISAR, processingLevel=GCOV)', links: [['NISAR mission', 'https://nisar.jpl.nasa.gov'], ['Product documentation', 'https://nisar-docs.asf.alaska.edu'], ['ASF DAAC', 'https://asf.alaska.edu']] },
+      { name: 'OPERA RTC-S1 (Sentinel-1)', by: 'NASA/JPL OPERA · ESA Copernicus · ASF DAAC', use: T('C-band radar backscatter (VV, VH), 2016 onward: the historical series and the base of the forecast.', 'Retroespalhamento do radar banda C (VV, VH), de 2016 em diante: a série histórica e a base da previsão.', 'Retrodispersión del radar banda C (VV, VH), desde 2016: la serie histórica y la base del pronóstico.'), calls: 'api.daac.asf.alaska.edu/services/search/param (dataset=OPERA-S1, processingLevel=RTC); GeoTIFFs by range request', links: [['OPERA RTC product', 'https://www.jpl.nasa.gov/go/opera/products/rtc-product/'], ['OPERA project', 'https://www.jpl.nasa.gov/go/opera'], ['Sentinel-1 mission', 'https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-1']] },
+      { name: 'ASF Search API', by: 'ASF DAAC', use: T('Finds the scenes that cover a point and a period.', 'Encontra as cenas que cobrem um ponto e um período.', 'Encuentra las escenas que cubren un punto y un período.'), calls: 'api.daac.asf.alaska.edu/services/search/param', links: [['API documentation', 'https://docs.asf.alaska.edu/api/basics/']] },
+      { name: 'GPM IMERG V07', by: 'NASA GPM · GES DISC', use: T('Daily rain (Final and Late runs) and monthly rain (Final), in 0.1° cells.', 'Chuva diária (rodadas Final e Late) e mensal (Final), em células de 0,1°.', 'Lluvia diaria (corridas Final y Late) y mensual (Final), en celdas de 0,1°.'), calls: 'opendap.earthdata.nasa.gov/collections/…/granules/… (one grid cell per request); granule lists from cmr.earthdata.nasa.gov', links: [['GPM IMERG', 'https://gpm.nasa.gov/data/imerg'], ['Daily Final (GPM_3IMERGDF)', 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDF_07/summary'], ['Daily Late (GPM_3IMERGDL)', 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDL_07/summary'], ['Monthly (GPM_3IMERGM)', 'https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGM_07/summary']] },
+      { name: 'NASA CMR', by: 'NASA ESDIS', use: T('Lists the IMERG files that exist for each day or month.', 'Lista os arquivos do IMERG que existem para cada dia ou mês.', 'Lista los archivos de IMERG que existen para cada día o mes.'), calls: 'cmr.earthdata.nasa.gov/search/granules.json', links: [['CMR search API', 'https://cmr.earthdata.nasa.gov/search/site/docs/search/api.html']] },
+      { name: 'Earthdata Login', by: 'NASA ESDIS', use: T('Authenticates every read of ASF and GES DISC; the token stays on the server.', 'Autentica toda leitura do ASF e do GES DISC; o token fica no servidor.', 'Autentica toda lectura de ASF y GES DISC; el token queda en el servidor.'), calls: 'urs.earthdata.nasa.gov (token in the EARTHDATA_TOKEN variable or the backend .env)', links: [['Earthdata Login', 'https://urs.earthdata.nasa.gov']] },
+    ],
+  },
+  {
+    id: 'layers', title: T('Map layers (from the browser)', 'Camadas do mapa (direto do navegador)', 'Capas del mapa (desde el navegador)'),
+    note: T('Imagery tiles are requested by the map itself and kept on the device by a service worker.', 'Os tiles de imagem são pedidos pelo próprio mapa e guardados no aparelho por um service worker.', 'Los mosaicos de imagen los pide el propio mapa y un service worker los guarda en el dispositivo.'),
+    items: [
+      { name: 'NASA GIBS', by: 'NASA ESDIS', use: T('Every NASA layer on the map: NISAR backscatter, surface water (OPERA DSWx), vegetation-loss alerts (OPERA DIST-ALERT), rain rate (IMERG), land surface temperature (VIIRS NOAA-21), soil moisture (SMAP L4), daily true color (VIIRS, MODIS) and Blue Marble.', 'Todas as camadas da NASA no mapa: retroespalhamento do NISAR, água superficial (OPERA DSWx), alertas de perda de vegetação (OPERA DIST-ALERT), taxa de chuva (IMERG), temperatura da superfície (VIIRS NOAA-21), umidade do solo (SMAP L4), cor real diária (VIIRS, MODIS) e Blue Marble.', 'Todas las capas de la NASA en el mapa: retrodispersión de NISAR, agua superficial (OPERA DSWx), alertas de pérdida de vegetación (OPERA DIST-ALERT), tasa de lluvia (IMERG), temperatura de la superficie (VIIRS NOAA-21), humedad del suelo (SMAP L4), color real diario (VIIRS, MODIS) y Blue Marble.'), calls: 'gibs.earthdata.nasa.gov/wmts/epsg3857/best', links: [['GIBS API', 'https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api'], ['GIBS documentation', 'https://nasa-gibs.github.io/gibs-api-docs/'], ['Worldview (browse the layers)', 'https://worldview.earthdata.nasa.gov']] },
+      { name: 'SMAP L4 · VIIRS · MODIS · Blue Marble', by: 'NASA', use: T('The instruments and products behind some GIBS layers.', 'Os instrumentos e produtos por trás de algumas camadas do GIBS.', 'Los instrumentos y productos detrás de algunas capas de GIBS.'), calls: 'through gibs.earthdata.nasa.gov', links: [['SMAP L4 soil moisture (NSIDC)', 'https://nsidc.org/data/spl4smau'], ['VIIRS', 'https://www.earthdata.nasa.gov/data/instruments/viirs'], ['MODIS', 'https://modis.gsfc.nasa.gov'], ['Blue Marble', 'https://visibleearth.nasa.gov/collection/1484/blue-marble']] },
+      { name: 'OPERA DSWx · DIST-ALERT', by: 'NASA/JPL OPERA', use: T('Surface-water extent and vegetation-disturbance alerts shown as layers.', 'Extensão de água superficial e alertas de distúrbio da vegetação mostrados como camadas.', 'Extensión de agua superficial y alertas de perturbación de la vegetación mostrados como capas.'), calls: 'through gibs.earthdata.nasa.gov', links: [['DSWx', 'https://www.jpl.nasa.gov/go/opera/products/dswx-product-suite/'], ['DIST-ALERT', 'https://www.jpl.nasa.gov/go/opera/products/dist-product-suite/']] },
+      { name: 'Sentinel-2 cloudless', by: 'EOX · contains modified Copernicus Sentinel data', use: T('The 10 m satellite base map; the backend also reads one tile per place to get the "ground color" the land-cover model uses.', 'O mapa-base de satélite de 10 m; o backend também lê um tile por lugar para obter a "cor do solo" que o modelo de cobertura usa.', 'El mapa base de satélite de 10 m; el backend también lee un mosaico por lugar para obtener el "color del suelo" que usa el modelo de cobertura.'), calls: 'tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2025_3857', links: [['Sentinel-2 cloudless', 'https://s2maps.eu'], ['Sentinel-2 mission', 'https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2']] },
+      { name: 'AWS Terrain Tiles (Terrarium)', by: 'Mapzen · AWS Open Data', use: T('Elevation for the 3D relief and the flood simulation.', 'Elevação para o relevo 3D e a simulação de cheia.', 'Elevación para el relieve 3D y la simulación de inundación.'), calls: 's3.amazonaws.com/elevation-tiles-prod/terrarium', links: [['AWS Terrain Tiles', 'https://registry.opendata.aws/terrain-tiles/']] },
+      { name: 'OpenFreeMap · OpenStreetMap', by: 'OpenFreeMap · OpenStreetMap contributors', use: T('3D buildings, streets, city names and map fonts (vector tiles).', 'Prédios em 3D, ruas, nomes de cidades e fontes do mapa (tiles vetoriais).', 'Edificios en 3D, calles, nombres de ciudades y fuentes del mapa (mosaicos vectoriales).'), calls: 'tiles.openfreemap.org/planet · tiles.openfreemap.org/fonts', links: [['OpenFreeMap', 'https://openfreemap.org'], ['OpenStreetMap copyright', 'https://www.openstreetmap.org/copyright']] },
+    ],
+  },
+  {
+    id: 'services', title: T('Other services (from the browser)', 'Outros serviços (direto do navegador)', 'Otros servicios (desde el navegador)'),
+    note: T('Each of these receives only what it needs: the wind request carries a grid of coordinates, the search carries the text you type.', 'Cada um recebe só o que precisa: o pedido de vento leva uma grade de coordenadas, a busca leva o texto que você digita.', 'Cada uno recibe solo lo que necesita: la solicitud de viento lleva una cuadrícula de coordenadas, la búsqueda lleva el texto que escribes.'),
+    items: [
+      { name: 'Open-Meteo', by: 'Open-Meteo', use: T('Wind speed and direction at 850 hPa for the current hour, from weather models, on an 80-point grid of 4°. It is model output, not a measurement; if it is unreachable a typical trade-wind field is drawn and labeled as such.', 'Velocidade e direção do vento a 850 hPa para a hora atual, de modelos de previsão do tempo, numa grade de 80 pontos de 4°. É saída de modelo, não medição; se estiver inacessível, desenha-se um campo típico de ventos alísios, rotulado como tal.', 'Velocidad y dirección del viento a 850 hPa para la hora actual, de modelos meteorológicos, en una cuadrícula de 80 puntos de 4°. Es salida de modelo, no una medición; si no está disponible se dibuja un campo típico de vientos alisios, rotulado como tal.'), calls: 'api.open-meteo.com/v1/forecast (wind_speed_850hPa, wind_direction_850hPa)', links: [['Open-Meteo documentation', 'https://open-meteo.com/en/docs'], ['Open-Meteo', 'https://open-meteo.com']] },
+      { name: 'Nominatim', by: 'OpenStreetMap Foundation', use: T('Place search (only the text typed in the search box is sent, after a pause in typing).', 'Busca de lugares (só o texto digitado na caixa de busca é enviado, após uma pausa na digitação).', 'Búsqueda de lugares (solo se envía el texto escrito en el cuadro de búsqueda, tras una pausa al teclear).'), calls: 'nominatim.openstreetmap.org/search', links: [['Search API', 'https://nominatim.org/release-docs/latest/api/Search/'], ['Usage policy', 'https://operations.osmfoundation.org/policies/nominatim/']] },
+      { name: 'Claude API (optional)', by: 'Anthropic', use: T('Answers open questions in the AI bar, only from what the map shows. Off unless the backend has an ANTHROPIC_API_KEY.', 'Responde perguntas abertas na barra de IA, só a partir do que o mapa mostra. Desligado se o backend não tiver ANTHROPIC_API_KEY.', 'Responde preguntas abiertas en la barra de IA, solo a partir de lo que muestra el mapa. Apagado si el backend no tiene ANTHROPIC_API_KEY.'), calls: 'through the SARIS API (POST /assistant)', links: [['Anthropic documentation', 'https://docs.anthropic.com']] },
+    ],
+  },
+  {
+    id: 'software', title: T('Our software and libraries', 'Nosso software e bibliotecas', 'Nuestro software y bibliotecas'),
+    note: T('The SARIS API is an HTTP API (FastAPI) at the address the page is configured with (VITE_API_URL, default http://127.0.0.1:8000); its interactive documentation is at /docs.', 'A API do SARIS é uma API HTTP (FastAPI) no endereço com que a página está configurada (VITE_API_URL, padrão http://127.0.0.1:8000); a documentação interativa fica em /docs.', 'La API de SARIS es una API HTTP (FastAPI) en la dirección con que está configurada la página (VITE_API_URL, por defecto http://127.0.0.1:8000); su documentación interactiva está en /docs.'),
+    items: [
+      { name: 'SARIS API (asf-cleaner)', by: 'SARIS team', use: T('Searches ASF, reads and cleans the scenes, reads IMERG, trains and runs the forecast and the risk model, and serves it all as JSON and Server-Sent Events.', 'Busca no ASF, lê e limpa as cenas, lê o IMERG, treina e roda a previsão e o modelo de risco, e serve tudo em JSON e Server-Sent Events.', 'Busca en ASF, lee y limpia las escenas, lee IMERG, entrena y ejecuta el pronóstico y el modelo de riesgo, y lo sirve todo en JSON y Server-Sent Events.'), calls: '/series/stream · /rain/stream · /forecast/stream · /regions · /health · /assistant', links: [['Backend repository', 'https://github.com/luiz-fleal/asf-cleaner']] },
+      { name: 'SARIS observatory', by: 'SARIS team', use: T('This web app (React, TypeScript, Vite).', 'Este aplicativo web (React, TypeScript, Vite).', 'Esta aplicación web (React, TypeScript, Vite).'), calls: '—', links: [['Frontend repository', 'https://github.com/cspatric/Nasa-Spaces-Apps']] },
+      { name: 'MapLibre GL JS · three.js · scikit-learn', by: 'open source', use: T('The 3D map, the 3D space scenes in the presentations, and the forecast and land-cover models.', 'O mapa 3D, as cenas espaciais 3D das apresentações, e os modelos de previsão e cobertura do solo.', 'El mapa 3D, las escenas espaciales 3D de las presentaciones, y los modelos de pronóstico y cobertura del suelo.'), calls: '—', links: [['MapLibre', 'https://maplibre.org'], ['three.js', 'https://threejs.org'], ['scikit-learn', 'https://scikit-learn.org']] },
+      { name: 'NASA Space Apps Challenge 2026', by: 'NASA', use: T('"Dancing with the SARs": the challenge this project answers.', '"Dancing with the SARs": o desafio a que este projeto responde.', '"Dancing with the SARs": el desafío al que responde este proyecto.'), calls: '—', links: [['Space Apps Challenge', 'https://www.spaceappschallenge.org']] },
+    ],
+  },
 ]
 
 const NAV = [
@@ -96,7 +139,7 @@ export default function TechnicalPage() {
   return (
     <div className="tech">
       <header className="tx-top">
-        <div className="tx-id"><b>SARIS</b><span>{tx(T('Data and methods', 'Dados e métodos', 'Datos y métodos'))}</span></div>
+        <div className="tx-id"><Logo size={22} /><b>SARIS</b><span>{tx(T('Data and methods', 'Dados e métodos', 'Datos y métodos'))}</span></div>
         <nav aria-label="Sections">{NAV.map(([id, l]) => <a key={id} href={`#${id}`}>{tx(l)}</a>)}</nav>
         <div className="tx-rt">
           <div className="tx-lang" role="group" aria-label="Language">
@@ -162,7 +205,29 @@ export default function TechnicalPage() {
 
         <section id="sources" className="tx-sec">
           <h2>{tx(T('Sources', 'Fontes', 'Fuentes'))}</h2>
-          <ol className="tx-src">{SOURCES.map(([n, u]) => <li key={u}><a href={u} target="_blank" rel="noreferrer">{n}</a><span>{u.replace(/^https?:\/\//, '')}</span></li>)}</ol>
+          <p className="tx-note">{tx(T('Every outside source the project reads, the address it calls, and where to read about it. Nothing here is invented or preloaded: radar and rain are read from NASA on demand.', 'Toda fonte externa que o projeto lê, o endereço que ele chama e onde ler sobre ela. Nada aqui é inventado nem pré-carregado: radar e chuva são lidos da NASA sob demanda.', 'Toda fuente externa que lee el proyecto, la dirección que llama y dónde leer sobre ella. Nada aquí es inventado ni precargado: radar y lluvia se leen de la NASA bajo demanda.'))}</p>
+          <div className="tx-flow" aria-label="Data flow">
+            <span>{tx(T('Browser', 'Navegador', 'Navegador'))}</span><i>→</i><span>{tx(T('SARIS API', 'API do SARIS', 'API de SARIS'))}</span><i>→</i><span>ASF · GES DISC · CMR</span>
+            <em>{tx(T('radar, rain, forecast, risk', 'radar, chuva, previsão, risco', 'radar, lluvia, pronóstico, riesgo'))}</em>
+            <span>{tx(T('Browser', 'Navegador', 'Navegador'))}</span><i>→</i><span>GIBS · EOX · AWS · OpenFreeMap · Open-Meteo · Nominatim</span>
+            <em>{tx(T('map tiles, wind, place search', 'tiles do mapa, vento, busca de lugares', 'mosaicos del mapa, viento, búsqueda de lugares'))}</em>
+          </div>
+          {SOURCE_GROUPS.map((g) => (
+            <div key={g.id} className="tx-grp">
+              <h3>{tx(g.title)}</h3>
+              <p className="tx-note">{tx(g.note)}</p>
+              <ul className="tx-srcs">
+                {g.items.map((it) => (
+                  <li key={it.name}>
+                    <div className="tx-sh"><b>{it.name}</b><span>{it.by}</span></div>
+                    <p>{tx(it.use)}</p>
+                    <code>{it.calls}</code>
+                    <div className="tx-links">{it.links.map(([n, u]) => <a key={u} href={u} target="_blank" rel="noreferrer">{n} ↗</a>)}</div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
           <p className="tx-note">{tx(T('Built for the NASA Space Apps Challenge 2026, "Dancing with the SARs". Not an official NASA product; NASA does not endorse it.', 'Feito para o NASA Space Apps Challenge 2026, "Dancing with the SARs". Não é um produto oficial da NASA; a NASA não o endossa.', 'Hecho para el NASA Space Apps Challenge 2026, "Dancing with the SARs". No es un producto oficial de la NASA; la NASA no lo respalda.'))}</p>
         </section>
       </main>

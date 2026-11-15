@@ -284,3 +284,5 @@
 .deck .ps-g li { position: relative; padding-left: 14px; font-size: 14px; line-height: 1.4; color: var(--fg); }
 .deck .ps-g li::before { content: ''; position: absolute; left: 0; top: .55em; width: 5px; height: 5px; background: var(--c); }
 .deck .ps-arrow { justify-self: center; font-size: 16px; line-height: 1; color: var(--mut); }
+
+.deck .dk-hud .id { align-items: center; } .deck .dk-hud .id .logo { display: block; }
