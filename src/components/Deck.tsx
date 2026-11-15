@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent, type ReactNode } from 'react'
 import { LANGS, useI18n, type Lang } from '../lib/i18n'
 import { emitNarration, onNarration } from '../lib/narration'
 import { voice } from '../lib/voice'
@@ -57,7 +57,10 @@ function Narration({ text, label }: { text: string; label: string }) {
   return (
     <div className="narr" onClick={() => setN(text.length)} role="status" aria-live="polite" data-narration={text}>
       <div className="label mono"><span>{label}</span><span className={`eq ${done ? '' : 'live'}`} aria-hidden="true"><i /><i /><i /><i /><i /></span></div>
-      <p>{done ? text : text.slice(0, n)}{!done && <span className="cursor" />}</p>
+      <div className="tw">
+        <p className="ghost" aria-hidden="true">{text}</p>
+        <p className="typed">{done ? text : text.slice(0, n)}{!done && <span className="cursor" />}</p>
+      </div>
     </div>
   )
 }
@@ -100,8 +103,17 @@ export default function Deck({ name, deck, steps, finish, skip, back }: Props) {
     emitNarration({ deck, step: step.id, index: i, lang, text: step.narration[lang] })
   }, [deck, step, i, lang, muted]) // `muted` too: turning the voice back on speaks the current page again
 
+  const root = useRef<HTMLDivElement>(null)
+  const look = (e: PointerEvent<HTMLDivElement>) => {
+    const el = root.current
+    if (!el) return
+    el.style.setProperty('--mx', String((e.clientX / innerWidth - 0.5) * 2))
+    el.style.setProperty('--my', String((e.clientY / innerHeight - 0.5) * 2))
+  }
+  // every page frames the "camera" differently; the background glides there instead of jumping
+  const frame = { '--fx': `${Math.sin(i * 2.1) * 7}vmin`, '--fy': `${Math.cos(i * 1.7) * 4}vmin`, '--fr': `${Math.sin(i * 1.3) * 9}deg`, '--fz': 1 + (i % 4) * 0.045 } as CSSProperties
   return (
-    <div className="deck">
+    <div className="deck" ref={root} style={frame} onPointerMove={look}>
       <div className="bg" aria-hidden="true"><div className="limb" /><div className="arc a1" /><div className="arc a2" /></div>
 
       <header className="dk-hud mono">
@@ -127,9 +139,8 @@ export default function Deck({ name, deck, steps, finish, skip, back }: Props) {
         </div>
         {!step.solo && step.render && (
           <div className="stage">
-            <div className="scan" aria-hidden="true" />
             {step.fig && <div className="fig mono"><b>FIG. {String(i + 1).padStart(2, '0')}</b><span>{tx(step.fig)}</span></div>}
-            {step.render()}
+            <div className="cam">{step.render()}</div>
           </div>
         )}
       </main>

@@ -89,21 +89,79 @@ export function TimelineList({ items }: { items: { when: string; text: Tri }[] }
 /** Optical light is stopped by cloud; the radar pulse goes through. */
 export function CloudRadar() {
   const tx = useTx()
+  const r = rng(7)
+  const stars = Array.from({ length: 46 }, () => ({ x: r() * 600, y: r() * 150, s: 0.5 + r() * 1.1, d: r() * 4 }))
+  const trees = Array.from({ length: 70 }, (_, k) => ({ x: (k / 70) * 620 - 10 + r() * 6, y: 292 + r() * 30, r: 7 + r() * 9, g: 90 + Math.floor(r() * 60) }))
+  const par = (n: number) => ({ transform: `translate(calc(var(--mx, 0) * ${n}px), calc(var(--my, 0) * ${n * 0.6}px))`, transition: 'transform .6s cubic-bezier(.2,.7,.2,1)' })
   return (
-    <svg className="svg" viewBox="0 0 520 300" role="img" aria-label="Optical ray blocked by clouds, radar ray passing through">
+    <svg className="svg scene" viewBox="0 0 600 360" role="img" aria-label="An optical ray stopped by clouds, a radar pulse crossing them and returning an echo from the forest">
       <defs>
-        <linearGradient id="cr-g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#3be0c5" stopOpacity=".9" /><stop offset="1" stopColor="#3be0c5" stopOpacity=".15" /></linearGradient>
-        <filter id="cr-b"><feGaussianBlur stdDeviation="4" /></filter>
+        <linearGradient id="cr-sky" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#050a16" /><stop offset=".55" stopColor="#0c1830" /><stop offset="1" stopColor="#12304a" /></linearGradient>
+        <linearGradient id="cr-amb" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#e7b04a" stopOpacity=".55" /><stop offset="1" stopColor="#e7b04a" stopOpacity="0" /></linearGradient>
+        <linearGradient id="cr-teal" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#3be0c5" stopOpacity=".5" /><stop offset="1" stopColor="#3be0c5" stopOpacity=".05" /></linearGradient>
+        <linearGradient id="cr-gnd" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#0f3b2c" /><stop offset="1" stopColor="#04130e" /></linearGradient>
+        <radialGradient id="cr-hit"><stop offset="0" stopColor="#3be0c5" stopOpacity=".9" /><stop offset="1" stopColor="#3be0c5" stopOpacity="0" /></radialGradient>
+        <filter id="cr-b" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="7" /></filter>
+        <filter id="cr-glow"><feGaussianBlur stdDeviation="2.4" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
       </defs>
-      <rect x="0" y="262" width="520" height="38" fill="#0b2a22" /><path d="M0 262 L520 262" stroke="#3be0c5" strokeOpacity=".5" />
-      <g fill="#cfd9ee" opacity=".92" filter="url(#cr-b)"><ellipse cx="150" cy="130" rx="95" ry="26" /><ellipse cx="220" cy="118" rx="70" ry="24" /><ellipse cx="370" cy="132" rx="100" ry="26" /><ellipse cx="440" cy="120" rx="60" ry="22" /></g>
-      <g fontFamily="ui-monospace,Menlo,monospace" fontSize="11" fill="#7f8fab"><text x="20" y="32">{tx(T('OPTICAL', 'ÓPTICO', 'ÓPTICO'))}</text><text x="300" y="32">RADAR</text></g>
-      <rect x="120" y="42" width="60" height="22" fill="#e7b04a" opacity=".9" /><rect x="400" y="42" width="60" height="22" fill="#3be0c5" opacity=".9" />
-      <path d="M150 64 L150 112" stroke="#e7b04a" strokeWidth="3" strokeDasharray="5 4"><animate attributeName="stroke-dashoffset" from="18" to="0" dur="1s" repeatCount="indefinite" /></path>
-      <text x="150" y="160" textAnchor="middle" fill="#e7b04a" fontSize="12" fontFamily="ui-monospace,Menlo,monospace">{tx(T('blocked', 'bloqueado', 'bloqueado'))}</text>
-      <path d="M430 64 L430 262" stroke="url(#cr-g)" strokeWidth="4"><animate attributeName="stroke-dasharray" values="0 200;200 0" dur="1.6s" repeatCount="indefinite" /></path>
-      <circle cx="430" cy="262" r="6" fill="#3be0c5"><animate attributeName="r" values="4;14;4" dur="1.6s" repeatCount="indefinite" /><animate attributeName="opacity" values="1;.1;1" dur="1.6s" repeatCount="indefinite" /></circle>
-      <text x="430" y="288" textAnchor="middle" fill="#3be0c5" fontSize="12" fontFamily="ui-monospace,Menlo,monospace">{tx(T('echo back', 'o eco volta', 'vuelve el eco'))}</text>
+      <rect width="600" height="360" fill="url(#cr-sky)" />
+
+      <g style={par(-3)}>{stars.map((st, k) => <circle key={k} cx={st.x} cy={st.y} r={st.s} fill="#cfe0ff"><animate attributeName="opacity" values=".15;.9;.15" dur={`${3 + st.d}s`} repeatCount="indefinite" /></circle>)}</g>
+
+      {/* the optical sensor and its ray, stopped at the clouds */}
+      <g style={par(5)}>
+        <polygon points="132,62 98,196 166,196" fill="url(#cr-amb)" />
+        <g transform="translate(132 50)">
+          <rect x="-26" y="-4" width="16" height="9" fill="#1d3b86" stroke="#6f9bff" strokeWidth=".7" /><rect x="10" y="-4" width="16" height="9" fill="#1d3b86" stroke="#6f9bff" strokeWidth=".7" />
+          <rect x="-10" y="-9" width="20" height="18" fill="#c9d4ea" /><circle cx="0" cy="12" r="5" fill="#e7b04a" filter="url(#cr-glow)" />
+          <animateTransform attributeName="transform" type="translate" values="132 50;132 46;132 50" dur="5s" repeatCount="indefinite" />
+        </g>
+        <g fontFamily="ui-monospace,Menlo,monospace" fontSize="10.5" letterSpacing="1.2">
+          <rect x="52" y="14" width="92" height="20" fill="#e7b04a" fillOpacity=".14" stroke="#e7b04a" strokeOpacity=".6" /><text x="62" y="28" fill="#e7b04a">{tx(T('OPTICAL · LIGHT', 'ÓPTICO · LUZ', 'ÓPTICO · LUZ'))}</text>
+        </g>
+      </g>
+
+      {/* the radar and its pulses, crossing everything */}
+      <g style={par(5)}>
+        <polygon points="456,62 390,300 522,300" fill="url(#cr-teal)" />
+        {[0, 0.7, 1.4].map((d) => (
+          <path key={d} d="M404 120 Q456 150 508 120" fill="none" stroke="#3be0c5" strokeWidth="2" opacity="0" filter="url(#cr-glow)">
+            <animateTransform attributeName="transform" type="translate" values="0 -50;0 170" dur="2.1s" begin={`${d}s`} repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0;.95;.95;0" dur="2.1s" begin={`${d}s`} repeatCount="indefinite" />
+          </path>
+        ))}
+        <g transform="translate(456 50)">
+          <rect x="-34" y="-4" width="20" height="9" fill="#1d3b86" stroke="#6f9bff" strokeWidth=".7" /><rect x="14" y="-4" width="20" height="9" fill="#1d3b86" stroke="#6f9bff" strokeWidth=".7" />
+          <rect x="-11" y="-9" width="22" height="18" fill="#c9d4ea" /><ellipse cx="0" cy="-15" rx="17" ry="6" fill="#e7b04a" opacity=".95" />
+          <rect x="-8" y="2" width="16" height="3" fill="#3be0c5" />
+          <animateTransform attributeName="transform" type="translate" values="456 50;456 46;456 50" dur="5s" begin=".8s" repeatCount="indefinite" />
+        </g>
+        <g fontFamily="ui-monospace,Menlo,monospace" fontSize="10.5" letterSpacing="1.2">
+          <rect x="414" y="14" width="150" height="20" fill="#3be0c5" fillOpacity=".12" stroke="#3be0c5" strokeOpacity=".6" /><text x="424" y="28" fill="#3be0c5">{tx(T('RADAR · L-BAND PULSE', 'RADAR · PULSO BANDA L', 'RADAR · PULSO BANDA L'))}</text>
+        </g>
+      </g>
+
+      {/* clouds drifting across, in two depths */}
+      <g filter="url(#cr-b)" fill="#dbe5f7" opacity=".9" style={par(9)}>
+        <g><ellipse cx="120" cy="198" rx="110" ry="24" /><ellipse cx="200" cy="184" rx="70" ry="22" /><ellipse cx="70" cy="184" rx="60" ry="18" />
+          <animateTransform attributeName="transform" type="translate" values="-14 0;18 0;-14 0" dur="14s" repeatCount="indefinite" /></g>
+        <g opacity=".75"><ellipse cx="400" cy="206" rx="120" ry="22" /><ellipse cx="500" cy="194" rx="80" ry="20" /><ellipse cx="320" cy="196" rx="60" ry="16" />
+          <animateTransform attributeName="transform" type="translate" values="16 0;-18 0;16 0" dur="17s" repeatCount="indefinite" /></g>
+      </g>
+      <g style={par(9)}>
+        <circle cx="132" cy="196" r="4" fill="#e7b04a"><animate attributeName="r" values="3;9;3" dur="1.8s" repeatCount="indefinite" /><animate attributeName="opacity" values="1;.1;1" dur="1.8s" repeatCount="indefinite" /></circle>
+        <g fontFamily="ui-monospace,Menlo,monospace" fontSize="10.5" letterSpacing="1"><text x="132" y="228" textAnchor="middle" fill="#e7b04a">{tx(T('BLOCKED · WHITE PHOTO', 'BLOQUEADO · FOTO BRANCA', 'BLOQUEADO · FOTO BLANCA'))}</text></g>
+      </g>
+
+      {/* the forest and the echo */}
+      <g style={par(14)}>
+        <path d="M-10 300 Q150 270 300 292 T610 280 V370 H-10Z" fill="url(#cr-gnd)" />
+        {trees.map((t, k) => <circle key={k} cx={t.x} cy={t.y} r={t.r} fill={`rgb(14,${t.g},62)`} opacity=".92" />)}
+        <path d="M-10 332 Q150 318 300 330 T610 322" fill="none" stroke="#3be0c5" strokeOpacity=".35" strokeWidth="3" />
+        <ellipse cx="456" cy="304" rx="52" ry="14" fill="url(#cr-hit)"><animate attributeName="rx" values="20;70;20" dur="2.1s" repeatCount="indefinite" /><animate attributeName="opacity" values="1;.15;1" dur="2.1s" repeatCount="indefinite" /></ellipse>
+        <path d="M456 300 L456 120" stroke="#3be0c5" strokeWidth="1.6" strokeDasharray="3 6" opacity=".85"><animate attributeName="stroke-dashoffset" values="0;18" dur=".7s" repeatCount="indefinite" /></path>
+        <g fontFamily="ui-monospace,Menlo,monospace" fontSize="10.5" letterSpacing="1"><text x="456" y="350" textAnchor="middle" fill="#3be0c5">{tx(T('ECHO BACK · CLEAR IMAGE', 'ECO VOLTA · IMAGEM NÍTIDA', 'VUELVE EL ECO · IMAGEN NÍTIDA'))}</text></g>
+      </g>
     </svg>
   )
 }
