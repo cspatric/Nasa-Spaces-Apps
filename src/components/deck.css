@@ -311,3 +311,23 @@
 .deck .dv-card p { margin: 0; font-size: 13.5px; line-height: 1.5; color: #cdd9ee; } .deck .dv-card small { font-size: 12px; color: var(--mut); } .deck .dv-card small b { color: #cdd9ee; font-weight: 600; }
 .deck .imp.fu h4 { margin: 8px 0 0; font-size: 9.5px; color: #fbbf24; }
 @media (max-width: 860px) { .deck .dv-list { grid-template-columns: repeat(2, 1fr); } .deck .dv-pol > div { grid-template-columns: 96px 1fr 50px; } }
+
+/* how the band and the window are used: three short notes under the matrix */
+.deck .pm-use { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.deck .pm-use > div { display: grid; gap: 3px; align-content: start; padding: 9px 10px; border: 1px solid var(--line); background: rgba(255, 255, 255, .03); }
+.deck .pm-use b { font-size: 12.5px; color: var(--acc); font-weight: 600; }
+.deck .pm-use span { font-size: 11.5px; line-height: 1.38; color: var(--mut); }
+.deck .pm-use em { font-style: normal; font-size: 11px; color: var(--fg); } .deck .pm-use em strong { color: var(--amb); }
+@media (max-width: 900px) { .deck .pm-use { grid-template-columns: 1fr; } }
+@media (max-height: 800px) {
+  .deck .pm-grid { width: min(220px, 34vw); }
+  .deck .pm-leg { display: none; }
+  .deck .pm-use > div { padding: 7px 9px; } .deck .pm-use span { font-size: 11px; line-height: 1.32; }
+}
+.deck .pm-use em { text-transform: none; letter-spacing: .01em; }
+
+/* the problem and its answer, as two plain sentences */
+.deck p.pa { display: block; margin: 6px 0 0; max-width: 460px; padding: 8px 14px; font-size: 15px; line-height: 1.5; color: #dbe6f8; background: rgba(0, 0, 0, .5); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border-left: 3px solid var(--acc); }
+
+.deck .prose { display: grid; gap: 12px; } .deck .prose p { margin: 0; font-size: 14.5px; line-height: 1.65; color: #d3deef; }
+.deck .sc-prose { margin: 0; font-size: 13.5px; line-height: 1.55; color: #cdd9ee; }

@@ -42,27 +42,29 @@ function Timeline({ index, onIndex, clamped }: Props) {
         <span className={`mode ${mode.key}`}>{t(mode.label)}{clamped && mode.key !== 'scenario' ? t(' · latest imagery') : ''}</span>
       </div>
       <div className="track">
-        <div className="bar">
-          <div className="c" title={t('C-band, OPERA')} style={{ width: `${lB}%` }} />
-          <div className="l" title={t('L-band, NISAR')} style={{ width: `${sc - lB}%` }} />
-          <div className="s" title={t('Scenarios (simulation)')} style={{ width: `${100 - sc}%` }} />
+        <div className="rail">
+          <div className="bar">
+            <div className="c" title={t('C-band, OPERA')} style={{ width: `${lB}%` }} />
+            <div className="l" title={t('L-band, NISAR')} style={{ width: `${sc - lB}%` }} />
+            <div className="s" title={t('Scenarios (simulation)')} style={{ width: `${100 - sc}%` }} />
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={TIMELINE_DAYS}
+            value={shown}
+            aria-label={t('Date')}
+            onChange={(e) => {
+              const v = Number(e.target.value)
+              latest.current = v
+              setDrag(v)
+              if (!timer.current) timer.current = window.setTimeout(commit, 100)
+            }}
+            onPointerUp={release}
+            onKeyUp={release}
+            onBlur={release}
+          />
         </div>
-        <input
-          type="range"
-          min={0}
-          max={TIMELINE_DAYS}
-          value={shown}
-          aria-label={t('Date')}
-          onChange={(e) => {
-            const v = Number(e.target.value)
-            latest.current = v
-            setDrag(v)
-            if (!timer.current) timer.current = window.setTimeout(commit, 100)
-          }}
-          onPointerUp={release}
-          onKeyUp={release}
-          onBlur={release}
-        />
         <div className="years">
           {YEARS.map((y) => (
             <span key={y} style={{ left: `${pct(Date.UTC(y, 0, 1))}%` }}>{y}</span>

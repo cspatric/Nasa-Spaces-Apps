@@ -2,7 +2,7 @@ import type { Step } from '../components/Deck'
 import { T } from './helpers'
 import { OWN } from './projectOwn'
 import { SATELLITE_STEPS } from './satelliteSteps'
-import { Tiles } from './visuals'
+import { Metrics } from './visuals'
 import { ENGINE_STEPS, withStory } from './projectStory'
 
 const own = (id: string) => OWN.find((s) => s.id === id)!
@@ -37,11 +37,11 @@ export const PROJECT_STEPS: Step[] = withStory([
       'Agora você sabe como um radar escuta e como duas datas revelam mudança. A próxima pergunta é onde. Então construímos um observatório com quatro partes. Um mapa 3D da América do Sul e Central, com relevo, prédios e ruas reais. Dados ao vivo, lidos na hora em que você pede, em torno da data que escolher. Uma linha do tempo que vai até 2030, onde dados observados e cenários nunca se misturam. E um assistente com quem você pode simplesmente conversar.',
       'Ahora sabes cómo escucha un radar y cómo dos fechas revelan el cambio. La siguiente pregunta es dónde. Así que construimos un observatorio con cuatro partes. Un mapa 3D de Sudamérica y Centroamérica, con relieve, edificios y calles reales. Datos en vivo, leídos en el momento en que los pides, alrededor de la fecha que elijas. Una línea de tiempo que llega a 2030, donde datos observados y escenarios nunca se mezclan. Y un asistente con el que puedes simplemente hablar.'),
     render: () => (
-      <Tiles items={[
-        { title: T('A 3D map', 'Um mapa 3D', 'Un mapa 3D'), text: T('Real relief, buildings and streets, and six NASA layers, each with its own color.', 'Relevo, prédios e ruas reais, e seis camadas da NASA, cada uma com a sua cor.', 'Relieve, edificios y calles reales, y seis capas de la NASA, cada una con su color.') },
-        { title: T('Live data', 'Dados ao vivo', 'Datos en vivo'), text: T('NISAR and OPERA radar, IMERG rain and the wind, read around the date you choose.', 'Radar NISAR e OPERA, chuva IMERG e o vento, lidos em torno da data que você escolhe.', 'Radar NISAR y OPERA, lluvia IMERG y el viento, leídos alrededor de la fecha que eliges.') },
-        { title: T('A timeline to 2030', 'Uma linha do tempo até 2030', 'Una línea de tiempo hasta 2030'), text: T('Observed until today, striped scenarios after it, never mixed.', 'Observado até hoje, cenários listrados depois, nunca misturados.', 'Observado hasta hoy, escenarios rayados después, nunca mezclados.') },
-        { title: T('An assistant', 'Um assistente', 'Un asistente'), text: T('Type what you want, in your language, and the map does it.', 'Digite o que quer, no seu idioma, e o mapa faz.', 'Escribe lo que quieres, en tu idioma, y el mapa lo hace.') },
+      <Metrics items={[
+        { n: 6, label: T('NASA layers, each one in its own color', 'camadas da NASA, cada uma com a sua cor', 'capas de la NASA, cada una con su color') },
+        { n: 2030, label: T('the end of the timeline, with real data and projections kept apart', 'o fim da linha do tempo, com dado real e projeção separados', 'el final de la línea de tiempo, con datos reales y proyecciones separados') },
+        { n: 3, label: T('languages: English, Portuguese and Spanish', 'idiomas: inglês, português e espanhol', 'idiomas: inglés, portugués y español') },
+        { n: 3, label: T('regions with a forecast ready', 'regiões com previsão pronta', 'regiones con pronóstico listo') },
       ]} />
     ),
   },

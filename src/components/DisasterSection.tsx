@@ -80,7 +80,7 @@ export default function DisasterSection(p: DisasterUi) {
                   <i style={{ background: z.color }} />
                   <span className="z-label">{t(z.label)}</span>
                   <span className="z-num">{fmtKm2(z.areaKm2, locale)}</span>
-                  <span className="z-num b">{z.buildings === null ? '—' : `${z.buildings.toLocaleString(locale)} ${t('buildings')}`}</span>
+                  <span className="z-num b">{z.buildings === null ? t('no data') : `${z.buildings.toLocaleString(locale)} ${t('buildings')}`}</span>
                 </li>
               ))}
             </ul>

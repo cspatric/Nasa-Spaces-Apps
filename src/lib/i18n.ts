@@ -162,6 +162,7 @@ const PT: Record<string, string> = {
   "Rain data (IMERG) covers 60°S to 60°N, so none is shown for this place.": "Os dados de chuva (IMERG) cobrem de 60°S a 60°N, então não há chuva para este local.",
   "The server is busy with other requests; trying again…": "O servidor está ocupado com outros pedidos; tentando de novo…",
   "The server is busy. Try again in a moment.": "O servidor está ocupado. Tente de novo em instantes.",
+  'Data and sources': 'Dados e fontes', 'Where the data comes from, with links, and how it is processed': 'De onde vêm os dados, com links, e como são processados',
 }
 
 const ES: Record<string, string> = {
@@ -313,6 +314,7 @@ const ES: Record<string, string> = {
   "Rain data (IMERG) covers 60°S to 60°N, so none is shown for this place.": "Los datos de lluvia (IMERG) cubren de 60°S a 60°N, así que no hay lluvia para este lugar.",
   "The server is busy with other requests; trying again…": "El servidor está ocupado con otras solicitudes; reintentando…",
   "The server is busy. Try again in a moment.": "El servidor está ocupado. Inténtalo de nuevo en un momento.",
+  'Data and sources': 'Datos y fuentes', 'Where the data comes from, with links, and how it is processed': 'De dónde vienen los datos, con enlaces, y cómo se procesan',
 }
 
 const DICT: Record<Lang, Record<string, string>> = { en: {}, pt: PT, es: ES }

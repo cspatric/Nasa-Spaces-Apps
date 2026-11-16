@@ -131,15 +131,24 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
   const prevTitle = i > 0 ? tx(steps[i - 1].title) : back ? tx(back.label) : ''
   const immersive = IMMERSIVE.has(step.id) || !!step.solo
 
+  // The page index is also kept in a ref, so several quick presses (or a held key) move one page each from the page they
+  // are on, not all from the same stale render. The voice is cut on the spot, in the click itself, not when the new page
+  // has been drawn: that is what keeps two sentences from ever playing over each other.
+  const pageRef = useRef(0)
+  const go = (to: number) => {
+    pageRef.current = to
+    voice.stop()
+    setI(to)
+  }
   const next = () => {
     sound.click()
-    if (last) navigate(finish.to)
-    else setI(i + 1)
+    if (pageRef.current >= steps.length - 1) { voice.stop(); navigate(finish.to) }
+    else go(pageRef.current + 1)
   }
   const prev = () => {
     sound.click()
-    if (i > 0) setI(i - 1)
-    else if (back) navigate(back.to)
+    if (pageRef.current > 0) go(pageRef.current - 1)
+    else if (back) { voice.stop(); navigate(back.to) }
   }
 
   useEffect(() => {
@@ -197,7 +206,7 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
           <nav className="dk-chap" aria-label="Story">
             {chapters.map((c, k) => {
               const cur = c.ids.includes(step.id), at = steps.findIndex((x) => x.id === c.ids[0])
-              return <button key={k} className={cur ? 'cur' : chapters.findIndex((d) => d.ids.includes(step.id)) > k ? 'done' : ''} onClick={() => { sound.click(); if (at >= 0) setI(at) }}><i>{String(k + 1).padStart(2, '0')}</i>{tx(c.label)}</button>
+              return <button key={k} className={cur ? 'cur' : chapters.findIndex((d) => d.ids.includes(step.id)) > k ? 'done' : ''} onClick={() => { sound.click(); if (at >= 0) go(at) }}><i>{String(k + 1).padStart(2, '0')}</i>{tx(c.label)}</button>
             })}
           </nav>
         )}
@@ -221,13 +230,7 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
         <div className="copy">
           <div className="kick mono">{step.solo ? tx(step.kicker) : `${String(i).padStart(2, '0')} · ${tx(step.kicker).replace(/^\d\d · /, '')}`}</div>
           {step.heading ?? <h2>{tx(step.title)}</h2>}
-          {step.problem && step.answer && (
-            <div className="pa">
-              <span className="p"><b>{lang === 'pt' ? 'Problema' : lang === 'es' ? 'Problema' : 'Problem'}</b>{tx(step.problem)}</span>
-              <span className="arrow" aria-hidden="true">→</span>
-              <span className="a"><b>{lang === 'pt' ? 'Solução' : lang === 'es' ? 'Solución' : 'Solution'}</b>{tx(step.answer)}</span>
-            </div>
-          )}
+          {step.problem && step.answer && <p className="pa">{tx(step.problem)} {tx(step.answer)}</p>}
         </div>
         {!step.solo && step.render && (
           <div className="stage">
@@ -244,7 +247,7 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
           <span className="bt"><small className="mono">{lang === 'pt' ? 'Voltar para' : lang === 'es' ? 'Volver a' : 'Back to'}</small><b>{prevTitle}</b></span>
         </button>
         <div className="ticks" role="tablist" aria-label="Steps">
-          {steps.map((s, k) => <button key={s.id} role="tab" aria-selected={k === i} aria-label={`${k + 1}`} className={k < i ? 'done' : k === i ? 'cur' : ''} onClick={() => { sound.click(); setI(k) }} />)}
+          {steps.map((s, k) => <button key={s.id} role="tab" aria-selected={k === i} aria-label={`${k + 1}`} className={k < i ? 'done' : k === i ? 'cur' : ''} onClick={() => { sound.click(); go(k) }} />)}
         </div>
         <span className="dk-count mono">{String(i + 1).padStart(2, '0')} / {String(steps.length).padStart(2, '0')}</span>
         <button className="dk-btn go" onClick={next}>{last ? tx(finish.label) : lang === 'pt' ? 'Continuar' : lang === 'es' ? 'Continuar' : 'Continue'} →</button>

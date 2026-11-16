@@ -34,7 +34,12 @@ for (const r of rows) {
       output_format: { container: 'mp3', sample_rate: 24000, bit_rate: 64000 },
     }),
   })
-  if (!res.ok) { console.error('FAIL ', name, res.status, (await res.text()).slice(0, 200)); process.exitCode = 1; continue }
+  if (!res.ok) {
+    console.error('FAIL ', name, res.status, (await res.text()).slice(0, 120))
+    // an old recording of a text that has changed would say something the caption does not: better silent than wrong
+    if (existsSync(file)) { unlinkSync(file); console.error('      removed the outdated recording of', name) }
+    delete manifest[name]; process.exitCode = 1; continue
+  }
   writeFileSync(file, Buffer.from(await res.arrayBuffer()))
   manifest[name] = h; done.set(h, file); chars += r.text.length
   console.log('made ', name, r.text.length, 'chars')

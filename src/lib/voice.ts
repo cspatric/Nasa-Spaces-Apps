@@ -10,23 +10,50 @@ const KEY = 'saris:voice-muted'
 const LANGS_WITH_AUDIO = new Set(['en'])
 
 let audio: HTMLAudioElement | null = null
-let pending: string | null = null
 let muted = (() => { try { return localStorage.getItem(KEY) === '1' } catch { return false } })()
 const listeners = new Set<() => void>()
 
+// Every narration that starts gets a number. Anything that finishes later (a play() that is refused, a retry waiting for a
+// click) first checks it still holds the latest number; otherwise it is about a page we already left and does nothing.
+// Without this, pressing Continue stopped the old audio, the interrupted play() reported a failure after the fact, and that
+// failure armed a "play on the next click" that brought the previous page's voice back.
+let current = 0
+let retry: (() => void) | null = null
+
 const url = (e: NarrationEvent) => `${import.meta.env.BASE_URL}audio/${e.lang}/${e.deck}-${e.step}.mp3`
 
+function clearRetry() {
+  if (!retry) return
+  window.removeEventListener('pointerdown', retry)
+  window.removeEventListener('keydown', retry)
+  retry = null
+}
+
 function stop() {
-  pending = null
-  if (audio) { audio.pause(); audio.src = ''; audio = null }
+  current++
+  clearRetry()
+  if (audio) {
+    const a = audio
+    audio = null
+    a.pause()
+    a.removeAttribute('src')
+    a.load() // releases the file; nothing from it can play or fire any more
+  }
 }
 
 function start(src: string) {
-  audio = new Audio(src)
-  audio.play().then(() => { pending = null }, () => {
-    // not allowed yet (no click so far) or the file is missing: retry once on the first gesture
-    pending = src
-    const retry = () => { if (pending === src && !muted) { pending = null; start(src) } }
+  const mine = ++current
+  const a = new Audio(src)
+  audio = a
+  a.play().catch((err: unknown) => {
+    if (mine !== current || audio !== a || muted) return // a newer page, or muted, took over
+    // The browser only blocks sound before the first click: wait for it, once. Other failures (a missing file) give up.
+    if ((err as DOMException)?.name !== 'NotAllowedError') return
+    retry = () => {
+      clearRetry()
+      // a moment later: if this very click or key press also changes the page, the new page's voice replaces this one first
+      setTimeout(() => { if (mine === current && !muted) { audio = null; start(src) } }, 80)
+    }
     window.addEventListener('pointerdown', retry, { once: true })
     window.addEventListener('keydown', retry, { once: true })
   })
@@ -35,7 +62,7 @@ function start(src: string) {
 export const voice = {
   /** Handler for `onNarration`. */
   handle(e: NarrationEvent) {
-    stop()
+    stop() // the page changed: the previous voice ends right here
     if (muted || !LANGS_WITH_AUDIO.has(e.lang)) return
     start(url(e))
   },

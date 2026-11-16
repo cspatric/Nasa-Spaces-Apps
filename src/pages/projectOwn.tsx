@@ -3,7 +3,8 @@ import { T } from './helpers'
 import Logo from '../components/Logo'
 import { OVERLAYS } from '../lib/catalog'
 import { translate } from '../lib/i18n'
-import { CloudRadar, Metrics, Picker, SayAvoid, ScoreBars, SegmentBar, Tiles } from './visuals'
+import { CloudRadar, Metrics, Picker, ScoreBars, SegmentBar, Tiles } from './visuals'
+import { Prose } from './visuals2'
 
 const tri = (key: string) => T(translate('en', key), translate('pt', key), translate('es', key))
 
@@ -124,10 +125,10 @@ export const OWN: Step[] = [
       <Picker
         hint={T('Pick a risk to see which signal it reads.', 'Escolha um risco para ver qual sinal ele lê.', 'Elige un riesgo para ver qué señal lee.')}
         options={[
-          { id: 'veg', label: tri('Vegetation loss'), text: T('A lasting drop of the cross-polarized radar after the yearly cycle is removed: the signature of cleared or degraded vegetation.', 'Uma queda duradoura do radar em polarização cruzada depois de remover o ciclo anual: a assinatura de vegetação derrubada ou degradada.', 'Una caída duradera del radar en polarización cruzada tras quitar el ciclo anual: la firma de vegetación talada o degradada.') },
-          { id: 'flood', label: tri('Flood'), text: T('Past flood-like radar, rain of the last months against the place’s own climate, and the forecast wet season.', 'Radar que já parecia alagado, a chuva dos últimos meses contra o clima do próprio lugar e a estação chuvosa prevista.', 'Radar que ya parecía inundado, la lluvia de los últimos meses frente al clima del propio lugar y la estación lluviosa prevista.') },
-          { id: 'fire', label: tri('Drought and fire'), text: T('A standardised 3-month rain index and the rain forecast of the next six months.', 'Um índice padronizado de chuva de 3 meses e a previsão de chuva dos próximos seis meses.', 'Un índice estandarizado de lluvia de 3 meses y el pronóstico de lluvia de los próximos seis meses.') },
-          { id: 'odd', label: tri('Unusual change'), text: T('Months that do not look like the rest of the history, found by an Isolation Forest.', 'Meses que não se parecem com o resto do histórico, achados por uma Isolation Forest.', 'Meses que no se parecen al resto del historial, hallados por un Isolation Forest.') },
+          { id: 'veg', label: tri('Vegetation loss'), text: T('When the cross-polarized radar drops and stays down after the yearly cycle is removed, that looks like cleared or damaged vegetation.', 'Quando o radar em polarização cruzada cai e continua baixo depois de tirar o ciclo anual, isso parece vegetação derrubada ou danificada.', 'Cuando el radar en polarización cruzada baja y se mantiene bajo después de quitar el ciclo anual, eso parece vegetación talada o dañada.') },
+          { id: 'flood', label: tri('Flood'), text: T('The model looks for radar that once looked flooded, compares the rain of the last months with what is usual for that place, and checks the wet season it forecasts.', 'O modelo procura radar que já pareceu alagado, compara a chuva dos últimos meses com o que é normal para aquele lugar e confere a estação chuvosa que ele prevê.', 'El modelo busca radar que alguna vez pareció inundado, compara la lluvia de los últimos meses con lo habitual en ese lugar y revisa la estación lluviosa que pronostica.') },
+          { id: 'fire', label: tri('Drought and fire'), text: T('It tracks how dry the last three months were compared with normal, and what the rain forecast says about the next six.', 'Ele acompanha o quanto os últimos três meses foram secos em relação ao normal e o que a previsão de chuva diz sobre os próximos seis.', 'Sigue cuán secos fueron los últimos tres meses respecto a lo normal y lo que dice el pronóstico de lluvia sobre los próximos seis.') },
+          { id: 'odd', label: tri('Unusual change'), text: T('An algorithm called Isolation Forest picks out months that do not look like the rest of the place\'s history.', 'Um algoritmo chamado Isolation Forest separa os meses que não se parecem com o resto do histórico do lugar.', 'Un algoritmo llamado Isolation Forest separa los meses que no se parecen al resto del historial del lugar.') },
         ]} />
     ),
   },
@@ -141,10 +142,8 @@ export const OWN: Step[] = [
       'Para poupar a sua espera, três regiões já vêm preparadas: a Amazônia, São Paulo e o Rio Grande do Sul. Cada uma é feita de alguns lugares amostrados. As três saíram em nível moderado hoje, e para cada risco o mapa mostra a amostra mais arriscada, então um ponto crítico nunca se perde na média.',
       'Para ahorrarte la espera, tres regiones vienen preparadas: el Amazonas, São Paulo y Rio Grande do Sul. Cada una se hace con unos pocos lugares muestreados. Las tres salieron en nivel moderado hoy, y para cada riesgo el mapa muestra la muestra más riesgosa, así que un punto crítico nunca se pierde en el promedio.'),
     render: () => (
-      <Tiles items={[
-        { title: T('Amazon · Moderate', 'Amazônia · Moderado', 'Amazonas · Moderado'), text: T('Main risk: drought and fire (Tapajós).', 'Risco principal: seca e queimada (Tapajós).', 'Riesgo principal: sequía e incendio (Tapajós).') },
-        { title: T('São Paulo · Moderate', 'São Paulo · Moderado', 'São Paulo · Moderado'), text: T('Main risk: unusual change (São Paulo city).', 'Risco principal: mudança incomum (cidade de São Paulo).', 'Riesgo principal: cambio inusual (ciudad de São Paulo).') },
-        { title: T('Rio Grande do Sul · Moderate', 'Rio Grande do Sul · Moderado', 'Rio Grande do Sul · Moderado'), text: T('Main risk: unusual change (Caxias do Sul).', 'Risco principal: mudança incomum (Caxias do Sul).', 'Riesgo principal: cambio inusual (Caxias do Sul).') },
+      <Prose paras={[
+        T('All three came out at a moderate level on the last run. In the Amazon the main concern is drought and fire around Tapajós. In São Paulo and in Rio Grande do Sul it is unusual change, in the city of São Paulo and around Caxias do Sul.', 'As três saíram em nível moderado na última rodada. Na Amazônia a maior preocupação é seca e queimada na região do Tapajós. Em São Paulo e no Rio Grande do Sul é mudança incomum, na cidade de São Paulo e em torno de Caxias do Sul.', 'Las tres salieron en nivel moderado en la última corrida. En el Amazonas la mayor preocupación es sequía e incendio en la zona del Tapajós. En São Paulo y en Rio Grande do Sul es cambio inusual, en la ciudad de São Paulo y alrededor de Caxias do Sul.'),
       ]} />
     ),
   },
@@ -178,10 +177,10 @@ export const OWN: Step[] = [
       'Antes do fim, uma promessa sobre as palavras. Dizemos que a resposta do radar mudou, que uma previsão tem uma faixa e que um cenário é simulado e incerto. Evitamos dizer que um satélite detectou desmatamento, que um lugar vai alagar em certo ano, ou que o modelo sempre acerta.',
       'Antes del final, una promesa sobre las palabras. Decimos que la respuesta del radar cambió, que un pronóstico tiene una banda y que un escenario es simulado e incierto. Evitamos decir que un satélite detectó deforestación, que un lugar se inundará en cierto año, o que el modelo siempre acierta.'),
     render: () => (
-      <SayAvoid
-        sayLabel={tri('We say')} avoidLabel={tri('We avoid')}
-        say={[tri('“A change in the radar response.”'), tri('“A forecast with an 80 % band.”'), tri('“A simulated scenario, with uncertainty.”')]}
-        avoid={[tri('“NISAR detected deforestation.”'), tri('“This place will flood in 2028.”'), tri('“The model is always right.”')]} />
+      <Prose paras={[
+        T('We say things like: the radar response changed here, this forecast has an 80 % band, this is a simulated scenario and it is uncertain.', 'Dizemos coisas como: a resposta do radar mudou aqui, esta previsão tem uma faixa de 80 %, este é um cenário simulado e incerto.', 'Decimos cosas como: la respuesta del radar cambió aquí, este pronóstico tiene una banda del 80 %, este es un escenario simulado e incierto.'),
+        T('We don\'t say that NISAR detected deforestation, that this place will flood in 2028, or that the model is always right.', 'Não dizemos que o NISAR detectou desmatamento, que este lugar vai alagar em 2028 ou que o modelo sempre acerta.', 'No decimos que NISAR detectó deforestación, que este lugar se inundará en 2028 ni que el modelo siempre acierta.'),
+      ]} />
     ),
   },
   {

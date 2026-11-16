@@ -47,14 +47,18 @@ export function startWind(map: MapLibreMap, grid: WindGrid): () => void {
     return `rgba(${Math.round(59 + 190 * k)},${Math.round(224 + 20 * k)},${Math.round(197 + 50 * k)},${(0.3 + 0.5 * k).toFixed(2)})`
   })
 
-  let raf = 0, lastFrame = 0
-  const clear = () => ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr)
+  // While the camera moves the old trails no longer match the ground, so they fade out fast (instead of the canvas being
+  // wiped, which left it empty for as long as the map was dragged) and new ones keep being drawn on every frame.
+  let raf = 0, lastFrame = 0, moving = false
+  const startMove = () => { moving = true }
+  const endMove = () => { moving = false; refreshBounds() }
   const frame = (now: number) => {
     raf = requestAnimationFrame(frame)
-    if (now - lastFrame < 33 || map.isMoving()) return // about 30 frames a second, and none while the camera moves (the trails are cleared then anyway)
+    if (!moving && now - lastFrame < 33) return // about 30 frames a second when still: enough for slow streamlines, half the work
+    const step = moving ? 1 : 2 // the same speed on screen at either rate
     lastFrame = now
     ctx.globalCompositeOperation = 'destination-out'
-    ctx.fillStyle = 'rgba(0,0,0,0.12)'
+    ctx.fillStyle = moving ? 'rgba(0,0,0,0.45)' : 'rgba(0,0,0,0.12)'
     ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr)
     ctx.globalCompositeOperation = 'source-over'
     ctx.lineWidth = 1.5
@@ -65,7 +69,7 @@ export function startWind(map: MapLibreMap, grid: WindGrid): () => void {
       const w = windAt(grid, lon[i], lat[i])
       if (!w || ++age[i] > life[i]) { spawn(i); continue }
       const sp = Math.hypot(w.u, w.v) || 0.01
-      const px = Math.min(5, sp * 0.4) * 2 // screen pixels per drawn frame (twice the step, half the frames)
+      const px = Math.min(5, sp * 0.4) * step // screen pixels per drawn frame
       const a = map.project([lon[i], lat[i]])
       lon[i] += ((w.u / sp) * px) / ppd
       lat[i] += ((w.v / sp) * px * Math.cos((lat[i] * Math.PI) / 180)) / ppd
@@ -80,13 +84,13 @@ export function startWind(map: MapLibreMap, grid: WindGrid): () => void {
   }
   raf = requestAnimationFrame(frame)
 
-  map.on('move', clear)
-  map.on('moveend', refreshBounds)
+  map.on('movestart', startMove)
+  map.on('moveend', endMove)
   map.on('resize', size)
   return () => {
     cancelAnimationFrame(raf)
-    map.off('move', clear)
-    map.off('moveend', refreshBounds)
+    map.off('movestart', startMove)
+    map.off('moveend', endMove)
     map.off('resize', size)
     canvas.remove()
   }

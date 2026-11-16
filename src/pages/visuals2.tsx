@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import type { Tri } from '../components/Deck'
 import { sound } from '../lib/sound'
 import { T, rng, useTx } from './helpers'
 
@@ -14,6 +15,11 @@ const WINDOW = [
   [0.011, 0.010, 0.016, 0.030, 0.576, 0.048],
 ]
 const db = (v: number) => 10 * Math.log10(v)
+/** The number the chart gets from a window: the median of its values in dB (a single pixel is mostly speckle). */
+const windowMedianDb = () => {
+  const all = WINDOW.flat().map(db).sort((a, b) => a - b)
+  return (all[all.length / 2 - 1] + all[all.length / 2]) / 2
+}
 const grey = (v: number) => { const t = Math.max(0, Math.min(1, (db(v) + 22) / 31)); const c = Math.round(18 + t * 232); return `rgb(${c},${c},${c})` }
 
 export function PixelMatrix() {
@@ -21,6 +27,7 @@ export function PixelMatrix() {
   const [mode, setMode] = useState<'lin' | 'db'>('lin')
   const [sel, setSel] = useState<[number, number]>([0, 4])
   const v = WINDOW[sel[0]][sel[1]]
+  const median = useMemo(() => windowMedianDb(), [])
   return (
     <>
       <div className="pm">
@@ -50,6 +57,21 @@ export function PixelMatrix() {
         ].map(([n, d, c], k) => (
           <span key={k}><i style={{ background: c as string }} /><b>{tx(n as never)}</b>{tx(d as never)}</span>
         ))}
+      </div>
+      <div className="pm-use">
+        <div>
+          <b>{tx(T('L-band · NISAR', 'Banda L · NISAR', 'Banda L · NISAR'))}</b>
+          <span>{tx(T('24 cm wavelength: it reaches deeper into foliage than C-band (Sentinel-1), so it answers to trunks and wet soil too. Since Oct 2025.', 'Comprimento de onda de 24 cm: penetra mais na folhagem que a banda C (Sentinel-1), então responde também a troncos e solo úmido. Desde out/2025.', 'Longitud de onda de 24 cm: penetra más en el follaje que la banda C (Sentinel-1), así que responde también a troncos y suelo húmedo. Desde oct/2025.'))}</span>
+        </div>
+        <div>
+          <b>{tx(T('The real window', 'A janela real', 'La ventana real'))}</b>
+          <span>{tx(T('On the map it covers 500 m: 51 × 51 pixels of 10 m (NISAR) or 17 × 17 of 30 m (Sentinel-1). Here, 6 × 6 to fit.', 'No mapa ela cobre 500 m: 51 × 51 pixels de 10 m (NISAR) ou 17 × 17 de 30 m (Sentinel-1). Aqui, 6 × 6 para caber.', 'En el mapa cubre 500 m: 51 × 51 píxeles de 10 m (NISAR) o 17 × 17 de 30 m (Sentinel-1). Aquí, 6 × 6 para que quepa.'))}</span>
+        </div>
+        <div>
+          <b>{tx(T('From pixels to one point', 'De pixels a um ponto', 'De píxeles a un punto'))}</b>
+          <span>{tx(T('Invalid pixels are dropped, and the median of the window, in dB, becomes the chart point for that date.', 'Pixels inválidos saem, e a mediana da janela, em dB, vira o ponto do gráfico daquela data.', 'Los píxeles inválidos salen, y la mediana de la ventana, en dB, se vuelve el punto del gráfico de esa fecha.'))}</span>
+          <em className="mono">{tx(T('this window', 'esta janela', 'esta ventana'))}: <strong>{median.toFixed(1)} dB</strong></em>
+        </div>
       </div>
     </>
   )
@@ -130,6 +152,12 @@ export function MlStory() {
   )
 }
 
+/** A few plain paragraphs on the instrument screen (no cards, no bullets). */
+export function Prose({ paras }: { paras: Tri[] }) {
+  const tx = useTx()
+  return <div className="prose">{paras.map((t, k) => <p key={k}>{tx(t)}</p>)}</div>
+}
+
 /** The scoreboard and the three outputs: anomaly layer, chart with expected range, transparent scorecard. */
 export function Scorecard() {
   const tx = useTx()
@@ -141,12 +169,6 @@ export function Scorecard() {
     { l: T('Radar alone', 'Só o radar', 'Solo el radar'), v: 73, c: '#a78bfa' },
     { l: T('Radar + color of the ground', 'Radar + cor do solo', 'Radar + color del suelo'), v: 85, c: '#3be0c5' },
   ]
-  const steps = [T('1 · Learns from known places', '1 · Aprende com lugares conhecidos', '1 · Aprende de lugares conocidos'), T('2 · Tested on places it never saw', '2 · Testado em lugares que nunca viu', '2 · Probado en lugares que nunca vio'), T('3 · Enters the map only if it wins', '3 · Só entra no mapa se vencer', '3 · Solo entra al mapa si gana')]
-  const outs = [
-    { t: T('On the map', 'No mapa', 'En el mapa'), d: T('a score from 0 to 1 shows how unusual a place is', 'uma nota de 0 a 1 mostra o quão incomum é um lugar', 'una nota de 0 a 1 muestra qué tan inusual es un lugar') },
-    { t: T('In the charts', 'Nos gráficos', 'En los gráficos'), d: T('a band shows what is normal for that place', 'uma faixa mostra o que é normal naquele lugar', 'una banda muestra qué es normal en ese lugar') },
-    { t: T('Scorecard', 'Placar', 'Marcador'), d: T('the model next to the simple guess', 'o modelo ao lado do palpite simples', 'el modelo junto a la suposición simple') },
-  ]
   return (
     <>
       <div className="bars sc">
@@ -155,58 +177,44 @@ export function Scorecard() {
         ))}
       </div>
       <div className="sc-note">{tx(T('Out of 100 places, how many it gets right: forest, city, water or other vegetation. Tested on places and years it never saw, repeated 16 times.', 'De cada 100 lugares, quantos ele acerta: floresta, cidade, água ou outra vegetação. Testado em lugares e anos que nunca viu, repetido 16 vezes.', 'De cada 100 lugares, cuántos acierta: bosque, ciudad, agua u otra vegetación. Probado en lugares y años que nunca vio, repetido 16 veces.'))}</div>
-      <div className="chev" aria-hidden="true">{steps.map((s, k) => <span key={k}>{tx(s)}</span>)}</div>
-      <div className="outs">{outs.map((o, k) => <div key={k}><b>{tx(o.t)}</b><span>{tx(o.d)}</span></div>)}</div>
+      <p className="sc-prose">{tx(T('When the model wins, the map gets three things: a score from 0 to 1 for each place and date, a chart with the expected range, and this scorecard with the model next to the simple rule.', 'Quando o modelo vence, o mapa ganha três coisas: uma nota de 0 a 1 para cada lugar e data, um gráfico com a faixa esperada e este placar com o modelo ao lado da regra simples.', 'Cuando el modelo gana, el mapa recibe tres cosas: una nota de 0 a 1 para cada lugar y fecha, un gráfico con el rango esperado y este marcador con el modelo junto a la regla simple.'))}</p>
     </>
   )
 }
 
-/** The Amazon and the regions its moisture reaches. Compact: the 3D scene next to it carries the picture. */
+/** The Amazon and the regions its moisture reaches, as two paragraphs (the 3D scene next to it carries the picture). */
 export function ImpactList() {
-  const tx = useTx()
-  const rows = [
-    { c: '#5eead4', n: T('Andes · Peru, Bolivia', 'Andes · Peru, Bolívia', 'Andes · Perú, Bolivia'), d: T('moisture climbs the slopes and feeds headwaters', 'a umidade sobe as encostas e alimenta nascentes', 'la humedad sube las laderas y alimenta cabeceras') },
-    { c: '#fbbf24', n: T('Centre-West and Southeast · São Paulo', 'Centro-Oeste e Sudeste · São Paulo', 'Centro-Oeste y Sudeste · São Paulo'), d: T('summer rain and reservoirs', 'chuva de verão e reservatórios', 'lluvia de verano y embalses'), tag: true },
-    { c: '#60a5fa', n: T('South · Rio Grande do Sul', 'Sul · Rio Grande do Sul', 'Sur · Rio Grande do Sul'), d: T('rain along the path south', 'chuva no caminho para o sul', 'lluvia en el camino al sur'), tag: true },
-    { c: '#c084fc', n: T('Plata basin · Paraguay, Uruguay, Argentina', 'Bacia do Prata · Paraguai, Uruguai, Argentina', 'Cuenca del Plata · Paraguay, Uruguay, Argentina'), d: T('farmland and rivers downwind', 'lavouras e rios a sotavento', 'cultivos y ríos a sotavento') },
-  ]
-  return (
-    <div className="imp">
-      {rows.map((r, k) => (
-        <div key={k} style={{ ['--c' as string]: r.c, animationDelay: `${k * 0.12}s` }}>
-          <i />
-          <p><b>{tx(r.n)}</b><span>{tx(r.d)}</span>{r.tag && <em className="mono">{tx(T('forecast ready', 'previsão pronta', 'pronóstico listo'))}</em>}</p>
-        </div>
-      ))}
-    </div>
-  )
+  return <Prose paras={[
+    T('The air that leaves the Amazon climbs the Andes and feeds the headwaters of rivers on the other side. It also brings rain to the centre and southeast of Brazil, São Paulo included, and farther south to Rio Grande do Sul, Paraguay, Uruguay and northern Argentina.', 'O ar que sai da Amazônia sobe os Andes e alimenta as nascentes de rios do outro lado. Também leva chuva ao centro e ao sudeste do Brasil, São Paulo incluída, e mais ao sul ao Rio Grande do Sul, ao Paraguai, ao Uruguai e ao norte da Argentina.', 'El aire que sale del Amazonas sube los Andes y alimenta las cabeceras de ríos del otro lado. También lleva lluvia al centro y al sudeste de Brasil, São Paulo incluida, y más al sur a Rio Grande do Sul, Paraguay, Uruguay y el norte de Argentina.'),
+    T('São Paulo and Rio Grande do Sul already have a forecast ready on the map, so you can read them next to the Amazon.', 'São Paulo e o Rio Grande do Sul já têm uma previsão pronta no mapa, então dá para lê-los ao lado da Amazônia.', 'São Paulo y Rio Grande do Sul ya tienen un pronóstico listo en el mapa, así que se pueden leer junto al Amazonas.'),
+  ]} />
 }
 
 /** What each physical driver does to the radar, by polarization. The numbers are illustrative orders of magnitude (dB), the signs are the physics. */
 const DRIVERS = [
   { id: 'clear', human: true, co: -2, cross: -6, c: '#fb923c',
     n: T('Forest clearing', 'Desmatamento', 'Tala de bosque'),
-    why: T('The canopy is gone, so the volume scattering of leaves, branches and trunks disappears: the cross-polarized echo (HV, VH) drops the most.', 'A copa some, e com ela o espalhamento de volume de folhas, galhos e troncos: o eco em polarização cruzada (HV, VH) é o que mais cai.', 'La copa desaparece, y con ella la dispersión de volumen de hojas, ramas y troncos: el eco en polarización cruzada (HV, VH) es el que más cae.'),
+    why: T('The canopy is gone, so the scattering from leaves, branches and trunks disappears. The cross-polarized echo (HV, VH) is the one that falls the most.', 'A copa some, e com ela o espalhamento das folhas, dos galhos e dos troncos. O eco em polarização cruzada (HV, VH) é o que mais cai.', 'La copa desaparece, y con ella la dispersión de hojas, ramas y troncos. El eco en polarización cruzada (HV, VH) es el que más cae.'),
     map: T('Vegetation loss risk · alerts layer', 'Risco de perda de vegetação · camada de alertas', 'Riesgo de pérdida de vegetación · capa de alertas') },
   { id: 'fire', human: true, co: -1.5, cross: -4, c: '#f87171',
     n: T('Fire', 'Queimada', 'Incendio'),
-    why: T('Burning strips canopy and leaves a scar: the cross-polarized echo falls and stays low for months, which is how a burned area differs from a dry season.', 'O fogo tira a copa e deixa uma cicatriz: o eco em polarização cruzada cai e fica baixo por meses, o que diferencia área queimada de estação seca.', 'El fuego quita la copa y deja una cicatriz: el eco en polarización cruzada cae y se mantiene bajo por meses, lo que distingue un área quemada de una estación seca.'),
+    why: T('Fire strips the canopy and leaves a scar. The cross-polarized echo falls and stays low for months, which is how a burned area differs from a dry season.', 'O fogo tira a copa e deixa uma cicatriz. O eco em polarização cruzada cai e fica baixo por meses, e é assim que uma área queimada se diferencia de uma estação seca.', 'El fuego quita la copa y deja una cicatriz. El eco en polarización cruzada cae y se mantiene bajo por meses, y así se distingue un área quemada de una estación seca.'),
     map: T('Drought and fire risk', 'Risco de seca e queimada', 'Riesgo de sequía e incendio') },
   { id: 'flood', human: false, co: 5, cross: 1, c: '#60a5fa',
     n: T('Flooded forest', 'Floresta alagada', 'Bosque inundado'),
-    why: T('Water under the trees makes the pulse bounce off the water and then the trunk: a double bounce that makes the co-polarized echo (HH) much brighter. Open flood water, by contrast, goes dark.', 'A água sob as árvores faz o pulso rebater na água e depois no tronco: um rebatimento duplo que deixa o eco co-polarizado (HH) bem mais brilhante. Já a água aberta fica escura.', 'El agua bajo los árboles hace rebotar el pulso en el agua y luego en el tronco: un rebote doble que hace el eco copolarizado (HH) mucho más brillante. El agua abierta, en cambio, se ve oscura.'),
+    why: T('Water under the trees makes the pulse bounce off the water and then off the trunk. That double bounce makes the co-polarized echo (HH) much brighter. Open flood water, on the other hand, looks dark.', 'A água sob as árvores faz o pulso rebater na água e depois no tronco. Esse rebatimento duplo deixa o eco co-polarizado (HH) bem mais brilhante. Já a água aberta de uma enchente fica escura.', 'El agua bajo los árboles hace que el pulso rebote en el agua y luego en el tronco. Ese rebote doble hace el eco copolarizado (HH) mucho más brillante. El agua abierta de una inundación, en cambio, se ve oscura.'),
     map: T('Flood risk · surface water layer', 'Risco de enchente · camada de água superficial', 'Riesgo de inundación · capa de agua superficial') },
   { id: 'soil', human: false, co: 3, cross: 1, c: '#a3e635',
     n: T('Soil moisture', 'Umidade do solo', 'Humedad del suelo'),
-    why: T('Wet soil has a high dielectric constant and reflects more: the echo, mostly the co-polarized one, rises after rain and falls in a drought.', 'O solo molhado tem constante dielétrica alta e reflete mais: o eco, sobretudo o co-polarizado, sobe depois da chuva e cai na seca.', 'El suelo mojado tiene una constante dieléctrica alta y refleja más: el eco, sobre todo el copolarizado, sube después de la lluvia y cae en la sequía.'),
+    why: T('Wet soil reflects more because of its high dielectric constant. The echo, mostly the co-polarized one, goes up after rain and down in a drought.', 'O solo molhado reflete mais por causa da sua constante dielétrica alta. O eco, principalmente o co-polarizado, sobe depois da chuva e desce na seca.', 'El suelo mojado refleja más por su constante dieléctrica alta. El eco, sobre todo el copolarizado, sube después de la lluvia y baja en la sequía.'),
     map: T('Rain and soil moisture layers', 'Camadas de chuva e umidade do solo', 'Capas de lluvia y humedad del suelo') },
   { id: 'crop', human: true, co: 2, cross: 4, c: '#fbbf24',
     n: T('Crops and pasture', 'Lavoura e pasto', 'Cultivos y pasto'),
-    why: T('As a crop grows its volume scattering rises, and at harvest or ploughing it drops: the cross-polarized echo traces the crop cycle. Pasture looks very different from forest.', 'Conforme a lavoura cresce o espalhamento de volume sobe, e na colheita ou aração ele cai: o eco em polarização cruzada desenha o ciclo da lavoura. O pasto é bem diferente da floresta.', 'A medida que el cultivo crece su dispersión de volumen sube, y en la cosecha o el arado baja: el eco en polarización cruzada dibuja el ciclo del cultivo. El pasto se ve muy distinto del bosque.'),
+    why: T('A growing crop scatters more, and harvest or ploughing brings that down, so the cross-polarized echo follows the crop cycle. Pasture looks very different from forest.', 'Uma lavoura em crescimento espalha mais o sinal, e a colheita ou a aração derrubam isso, então o eco em polarização cruzada acompanha o ciclo da lavoura. O pasto é bem diferente da floresta.', 'Un cultivo en crecimiento dispersa más la señal, y la cosecha o el arado lo bajan, así que el eco en polarización cruzada sigue el ciclo del cultivo. El pasto se ve muy distinto del bosque.'),
     map: T('Land cover · the Rondônia pasture place', 'Cobertura do solo · o lugar de pasto em Rondônia', 'Cobertura del suelo · el lugar de pasto en Rondônia') },
   { id: 'city', human: true, co: 4, cross: 2, c: '#c084fc',
     n: T('City growth', 'Crescimento urbano', 'Crecimiento urbano'),
-    why: T('Walls and ground form corners that send the pulse straight back: new buildings brighten the echo, mostly the co-polarized one.', 'Paredes e chão formam quinas que devolvem o pulso direto: prédios novos deixam o eco mais brilhante, sobretudo o co-polarizado.', 'Paredes y suelo forman esquinas que devuelven el pulso directo: edificios nuevos hacen el eco más brillante, sobre todo el copolarizado.'),
+    why: T('Walls and the ground form corners that send the pulse straight back, so new buildings brighten the echo, mostly the co-polarized one.', 'Paredes e chão formam quinas que mandam o pulso direto de volta, então prédios novos deixam o eco mais brilhante, principalmente o co-polarizado.', 'Las paredes y el suelo forman esquinas que mandan el pulso directo de vuelta, así que los edificios nuevos hacen el eco más brillante, sobre todo el copolarizado.'),
     map: T('Land cover: city', 'Cobertura do solo: cidade', 'Cobertura del suelo: ciudad') },
 ]
 
@@ -240,29 +248,15 @@ export function DriversPicker() {
         <p>{tx(d.why)}</p>
         <small>{tx(T('On the map', 'No mapa', 'En el mapa'))}: <b>{tx(d.map)}</b></small>
       </div>
-      <div className="sc-note">{tx(T('Illustrative orders of magnitude. The radar says something changed; the driver is a hypothesis to confirm with optical images and rain.', 'Ordens de grandeza ilustrativas. O radar diz que algo mudou; a causa é uma hipótese a confirmar com imagem óptica e chuva.', 'Órdenes de magnitud ilustrativos. El radar dice que algo cambió; la causa es una hipótesis a confirmar con imagen óptica y lluvia.'))}</div>
+      <div className="sc-note">{tx(T('These numbers are only rough orders of magnitude. The radar tells us that something changed, and the cause stays a hypothesis until optical images and rain confirm it.', 'Esses números são só ordens de grandeza aproximadas. O radar diz que algo mudou, e a causa continua sendo uma hipótese até que imagens ópticas e a chuva a confirmem.', 'Estos números son solo órdenes de magnitud aproximados. El radar dice que algo cambió, y la causa sigue siendo una hipótesis hasta que las imágenes ópticas y la lluvia la confirmen.'))}</div>
     </>
   )
 }
 
-/** What NISAR can do beyond this project, and what SARIS adds next. */
+/** What NISAR can do beyond this project, and what SARIS adds next, as two paragraphs. */
 export function FutureList() {
-  const tx = useTx()
-  const rows = [
-    { n: T('Ground motion', 'Movimento do solo', 'Movimiento del suelo'), d: T('earthquakes, landslides, subsidence, to the centimetre (interferometry)', 'terremotos, deslizamentos, subsidência, em centímetros (interferometria)', 'terremotos, deslizamientos, subsidencia, al centímetro (interferometría)') },
-    { n: T('Glaciers and sea ice', 'Geleiras e gelo marinho', 'Glaciares y hielo marino'), d: T('flow and change, even in polar night', 'fluxo e mudança, até na noite polar', 'flujo y cambio, incluso en la noche polar') },
-    { n: T('Wetlands and floods', 'Áreas úmidas e enchentes', 'Humedales e inundaciones'), d: T('water under vegetation', 'água sob a vegetação', 'agua bajo la vegetación') },
-    { n: T('Crops and soil moisture', 'Lavouras e umidade do solo', 'Cultivos y humedad del suelo'), d: T('growth cycles and water stress', 'ciclos de crescimento e estresse hídrico', 'ciclos de crecimiento y estrés hídrico') },
-    { n: T('Forest biomass', 'Biomassa florestal', 'Biomasa forestal'), d: T('the carbon in trunks and branches (L-band)', 'o carbono em troncos e galhos (banda L)', 'el carbono en troncos y ramas (banda L)') },
-  ]
-  const next = [T('An interferometry layer for ground motion', 'Uma camada de interferometria para movimento do solo', 'Una capa de interferometría para movimiento del suelo'), T('Ascending and descending passes together', 'Passagens ascendentes e descendentes juntas', 'Pasadas ascendentes y descendentes juntas'), T('Population and land-use overlays', 'Camadas de população e uso do solo', 'Capas de población y uso del suelo')]
-  return (
-    <div className="imp fu">
-      {rows.map((r, k) => (
-        <div key={k} style={{ ['--c' as string]: '#5eead4', animationDelay: `${k * 0.1}s` }}><i /><p><b>{tx(r.n)}</b><span>{tx(r.d)}</span></p></div>
-      ))}
-      <h4 className="mono">{tx(T('SARIS next', 'SARIS a seguir', 'SARIS a continuación'))}</h4>
-      {next.map((n, k) => <div key={`n${k}`} style={{ ['--c' as string]: '#fbbf24', animationDelay: `${(rows.length + k) * 0.1}s` }}><i /><p><b>{tx(n)}</b></p></div>)}
-    </div>
-  )
+  return <Prose paras={[
+    T('Beyond forests, the same radar can follow ground motion down to the centimetre, glaciers and sea ice even in polar night, water hidden under vegetation, crops and their water stress, and the carbon held in the forest.', 'Além das florestas, o mesmo radar acompanha o movimento do solo até o centímetro, geleiras e gelo marinho mesmo na noite polar, a água escondida sob a vegetação, as lavouras e o estresse hídrico delas, e o carbono guardado na floresta.', 'Más allá de los bosques, el mismo radar puede seguir el movimiento del suelo hasta el centímetro, los glaciares y el hielo marino incluso en la noche polar, el agua escondida bajo la vegetación, los cultivos y su estrés hídrico, y el carbono guardado en el bosque.'),
+    T('For SARIS, the next steps are a layer for ground motion, passes from both directions put together, and layers with population and land use.', 'Para o SARIS, os próximos passos são uma camada de movimento do solo, as passagens dos dois sentidos juntas e camadas de população e uso do solo.', 'Para SARIS, los próximos pasos son una capa de movimiento del suelo, las pasadas de los dos sentidos juntas y capas de población y uso del suelo.'),
+  ]} />
 }

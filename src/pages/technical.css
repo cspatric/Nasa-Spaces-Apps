@@ -67,3 +67,11 @@
 .tx-srcs code { font: 12px/1.45 ui-monospace, Menlo, monospace; color: var(--mut); word-break: break-all; padding: 6px 8px; background: rgba(255, 255, 255, .03); border-left: 2px solid var(--line2); }
 .tx-links { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: auto; }
 .tx-links a { color: var(--acc); font-size: 13px; text-decoration: none; border-bottom: 1px solid transparent; } .tx-links a:hover { border-bottom-color: var(--acc); }
+
+/* what can disturb the measurement */
+.tx-dist { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 430px), 1fr)); gap: 10px; margin-top: 16px; }
+.tx-d { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border: 1px solid var(--line); border-left: 3px solid var(--mut); background: rgba(8, 13, 24, .9); }
+.tx-d.no { border-left-color: var(--acc); } .tx-d.some { border-left-color: #e7b04a; } .tx-d.yes { border-left-color: #f87171; } .tx-d.real { border-left-color: #6f9bff; }
+.tx-dh { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; }
+.tx-dh b { font-size: 15px; font-weight: 600; color: var(--fg); } .tx-dh em { font-style: normal; font: 11px ui-monospace, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--mut); }
+.tx-d p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--fg); } .tx-d .tx-how { color: var(--mut); } .tx-how strong { color: var(--acc); font-weight: 600; }
