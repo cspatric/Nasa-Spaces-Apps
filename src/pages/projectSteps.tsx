@@ -24,6 +24,7 @@ export const PROJECT_STEPS: Step[] = withStory([
   own('problem'),
   sat('meet'),
   ENGINE_STEPS.pixels,
+  ENGINE_STEPS.drivers,
   sat('dates'),
   ENGINE_STEPS.ml,
   ENGINE_STEPS.validate,
@@ -37,18 +38,17 @@ export const PROJECT_STEPS: Step[] = withStory([
       'Ahora sabes cómo escucha un radar y cómo dos fechas revelan el cambio. La siguiente pregunta es dónde. Así que construimos un observatorio con cuatro partes. Un mapa 3D de Sudamérica y Centroamérica, con relieve, edificios y calles reales. Datos en vivo, leídos en el momento en que los pides, alrededor de la fecha que elijas. Una línea de tiempo que llega a 2030, donde datos observados y escenarios nunca se mezclan. Y un asistente con el que puedes simplemente hablar.'),
     render: () => (
       <Tiles items={[
-        { title: T('A 3D map', 'Um mapa 3D', 'Un mapa 3D'), text: T('Real relief, buildings and streets, only over the region of the study.', 'Relevo, prédios e ruas reais, só sobre a região do estudo.', 'Relieve, edificios y calles reales, solo sobre la región del estudio.') },
+        { title: T('A 3D map', 'Um mapa 3D', 'Un mapa 3D'), text: T('Real relief, buildings and streets, and six NASA layers, each with its own color.', 'Relevo, prédios e ruas reais, e seis camadas da NASA, cada uma com a sua cor.', 'Relieve, edificios y calles reales, y seis capas de la NASA, cada una con su color.') },
         { title: T('Live data', 'Dados ao vivo', 'Datos en vivo'), text: T('NISAR and OPERA radar, IMERG rain and the wind, read around the date you choose.', 'Radar NISAR e OPERA, chuva IMERG e o vento, lidos em torno da data que você escolhe.', 'Radar NISAR y OPERA, lluvia IMERG y el viento, leídos alrededor de la fecha que eliges.') },
-        { title: T('A timeline to 2030', 'Uma linha do tempo até 2030', 'Una línea de tiempo hasta 2030'), text: T('Observed until today, scenarios after it, never mixed.', 'Observado até hoje, cenários depois, nunca misturados.', 'Observado hasta hoy, escenarios después, nunca mezclados.') },
+        { title: T('A timeline to 2030', 'Uma linha do tempo até 2030', 'Una línea de tiempo hasta 2030'), text: T('Observed until today, striped scenarios after it, never mixed.', 'Observado até hoje, cenários listrados depois, nunca misturados.', 'Observado hasta hoy, escenarios rayados después, nunca mezclados.') },
         { title: T('An assistant', 'Um assistente', 'Un asistente'), text: T('Type what you want, in your language, and the map does it.', 'Digite o que quer, no seu idioma, e o mapa faz.', 'Escribe lo que quieres, en tu idioma, y el mapa lo hace.') },
       ]} />
     ),
   },
-  own('layers'),
-  own('time'),
   own('risks'),
   own('regions'),
   ENGINE_STEPS.impact,
+  ENGINE_STEPS.future,
   own('honest'),
   {
     id: 'next', solo: true,

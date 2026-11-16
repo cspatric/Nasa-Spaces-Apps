@@ -6,6 +6,21 @@ NASA Space Apps Challenge 2026, challenge "Dancing with the SARs".
 SARIS is an interactive 3D observatory of surface change. It uses NISAR (L-band)
 radar data, OPERA RTC-S1 (C-band, 2016 to 2026) and NASA climate data.
 
+## How it answers the challenge
+
+| The challenge asks for | Where it is |
+|---|---|
+| An interactive app on NISAR radar data that tracks and visualizes surface change | The 3D map (`/mapa`): NISAR backscatter layer, OPERA surface-water and vegetation-loss layers, a timeline 2016 to 2030, a two-date slider and threshold (deck page "What changed"), area and point analysis, risks |
+| Intuitive tools: change-detection maps, time-series animations, dashboards | Change threshold slider, animated timeline, charts with expected range, risk cards per place and region |
+| Different polarizations and frequencies | L-band NISAR (HH, HV) and C-band Sentinel-1 (VV, VH); the deck page "Each driver leaves its own signature" shows which polarization shows which change |
+| Time series and ancillary data | Ten years of monthly radar, IMERG rain, Sentinel-2 ground color, land-cover class per place |
+| Hypothesize the physical drivers (why does the Amazon change?) | Deck pages on drivers (clearing, fire, flooded forest, soil moisture, crops and pasture, city growth) and on the Amazon's impact on the rest of South America |
+| Human drivers and natural resources | Drivers marked human or natural; vegetation-loss, flood and drought-and-fire risks; Rondônia pasture and Novo Progresso among the sample places |
+| Compelling storytelling | Two decks (`/` and `/satelite`): a problem and its solution in every page, narrated, with a 3D space backdrop |
+| Interactive summary (image sliders, web maps) | The two-date slider, the clickable pixel matrix, the forecast stages, the map itself, and an AI bar that drives it |
+| Future applications of NISAR | Deck page "NISAR can do much more": ground motion, ice, wetlands, crops, biomass, and what SARIS adds next |
+| Open-source, user-friendly | Plain-language pages in English, Portuguese and Spanish; **add a LICENSE before the submission** (none yet) |
+
 ## Run
 
 ```bash

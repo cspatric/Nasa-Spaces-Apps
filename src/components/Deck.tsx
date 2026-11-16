@@ -127,6 +127,8 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
   const step = steps[i]
   const last = i === steps.length - 1
   const tx = (o: Tri) => o[lang]
+  // where Back leads: the title of the previous page, or the page the deck came from
+  const prevTitle = i > 0 ? tx(steps[i - 1].title) : back ? tx(back.label) : ''
   const immersive = IMMERSIVE.has(step.id) || !!step.solo
 
   const next = () => {
@@ -156,9 +158,10 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
     const off = onNarration(voice.handle)
     return () => { off(); voice.stop() }
   }, [])
+  const narration = step.narration[lang]
   useEffect(() => {
-    emitNarration({ deck, step: step.id, index: i, lang, text: step.narration[lang] })
-  }, [deck, step, i, lang, muted]) // `muted` too: turning the voice back on speaks the current page again
+    emitNarration({ deck, step: step.id, index: i, lang, text: narration })
+  }, [deck, step.id, i, lang, narration, muted]) // the text, not the step object: a new object with the same page must not restart the voice; `muted` too: turning the voice back on speaks the current page again
 
   const root = useRef<HTMLDivElement>(null)
   // The parallax follows the pointer at most once per frame, in steps of 0.05, so a still hand costs nothing and a moving one little.
@@ -207,7 +210,10 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
           <div className="dk-lang" role="group" aria-label="Language">
             {LANGS.map((l) => <button key={l.id} className={lang === l.id ? 'on' : ''} title={l.name} onClick={() => setLang(l.id)}>{l.label}</button>)}
           </div>
-          <Link to={skip.to} className="skip">{tx(skip.label)} →</Link>
+          <Link to={skip.to} className="skip">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 18s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10Z" /><circle cx="10" cy="8" r="2.2" /></svg>
+            <span>{tx(skip.label)}</span><i aria-hidden="true">→</i>
+          </Link>
         </div>
       </header>
 
@@ -233,7 +239,10 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
       <Caption key={`${step.id}-${lang}`} text={tx(step.narration)} label={lang === 'pt' ? 'Narração' : lang === 'es' ? 'Narración' : 'Narration'} />
 
       <footer className="foot">
-        <button className="dk-btn" onClick={prev} disabled={i === 0 && !back}>← {lang === 'pt' ? 'Voltar' : lang === 'es' ? 'Atrás' : 'Back'}</button>
+        <button className="dk-btn back" onClick={prev} disabled={i === 0 && !back} title={prevTitle}>
+          <span className="arr" aria-hidden="true">←</span>
+          <span className="bt"><small className="mono">{lang === 'pt' ? 'Voltar para' : lang === 'es' ? 'Volver a' : 'Back to'}</small><b>{prevTitle}</b></span>
+        </button>
         <div className="ticks" role="tablist" aria-label="Steps">
           {steps.map((s, k) => <button key={s.id} role="tab" aria-selected={k === i} aria-label={`${k + 1}`} className={k < i ? 'done' : k === i ? 'cur' : ''} onClick={() => { sound.click(); setI(k) }} />)}
         </div>

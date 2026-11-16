@@ -38,10 +38,10 @@ export const FOCUS: Record<string, string> = {
   cover: 'system', problem: 'amazon', meet: 'nisar', history: 'nisarWide', echo: 'beam', numbers: 'footprint', dates: 'amazonLow',
   claims: 'sentinel', rain: 'gpm', model: 'earthFar', honest: 'nisarWide', next: 'system',
   built: 'earth', layers: 'smap', wind: 'amazon', time: 'viirs', forecast: 'earthFar', risks: 'amazonLow', regions: 'amazon',
-  assistant: 'earth', whatif: 'footprint', pixels: 'amazonLow', ml: 'amazonLow', validate: 'amazon', impact: 'southAmerica',
+  assistant: 'earth', whatif: 'footprint', pixels: 'amazonLow', drivers: 'amazon', future: 'earthFar', ml: 'amazonLow', validate: 'amazon', impact: 'southAmerica',
 }
 /** Pages where the 3D scene is the figure; the others keep a large instrument panel on the right. */
-export const IMMERSIVE = new Set(['meet', 'history', 'built', 'time', 'honest', 'layers', 'impact'])
+export const IMMERSIVE = new Set(['meet', 'history', 'built', 'time', 'honest', 'layers', 'impact', 'future'])
 
 const LABELS: Record<string, { name: Record<string, string>; sub: string }> = {
   earth: { name: { en: 'Earth', pt: 'Terra', es: 'Tierra' }, sub: '' },

@@ -135,16 +135,17 @@ export function Scorecard() {
   const tx = useTx()
   const [go, setGo] = useState(false)
   useEffect(() => { const id = setTimeout(() => setGo(true), 250); return () => clearTimeout(id) }, [])
+  // what a person can read: how often each one is right when it says what a place is (forest, city, water or other vegetation)
   const rows = [
-    { l: T('Simple rule', 'Regra simples', 'Regla simple'), v: 54, c: '#6f9bff' },
-    { l: T('Radar only', 'Só radar', 'Solo radar'), v: 73, c: '#a78bfa' },
-    { l: T('Radar + ground color', 'Radar + cor do solo', 'Radar + color del suelo'), v: 85, c: '#3be0c5' },
+    { l: T('Simple guess', 'Palpite simples', 'Suposición simple'), v: 54, c: '#6f9bff' },
+    { l: T('Radar alone', 'Só o radar', 'Solo el radar'), v: 73, c: '#a78bfa' },
+    { l: T('Radar + color of the ground', 'Radar + cor do solo', 'Radar + color del suelo'), v: 85, c: '#3be0c5' },
   ]
-  const steps = [T('Anomaly detector', 'Detector de anomalias', 'Detector de anomalías'), T('Strict acceptance', 'Aceite rigoroso', 'Aceptación estricta'), T('Anomaly map', 'Mapa de anomalias', 'Mapa de anomalías')]
+  const steps = [T('1 · Learns from known places', '1 · Aprende com lugares conhecidos', '1 · Aprende de lugares conocidos'), T('2 · Tested on places it never saw', '2 · Testado em lugares que nunca viu', '2 · Probado en lugares que nunca vio'), T('3 · Enters the map only if it wins', '3 · Só entra no mapa se vencer', '3 · Solo entra al mapa si gana')]
   const outs = [
-    { t: T('Anomaly layer', 'Camada de anomalia', 'Capa de anomalía'), d: T('a 0 to 1 score on the map', 'nota de 0 a 1 no mapa', 'nota de 0 a 1 en el mapa') },
-    { t: T('Expected range', 'Faixa esperada', 'Rango esperado'), d: T('chart with the normal band', 'gráfico com a faixa normal', 'gráfico con la banda normal') },
-    { t: T('Scorecard', 'Placar', 'Marcador'), d: T('model and rule side by side', 'modelo e regra lado a lado', 'modelo y regla lado a lado') },
+    { t: T('On the map', 'No mapa', 'En el mapa'), d: T('a score from 0 to 1 shows how unusual a place is', 'uma nota de 0 a 1 mostra o quão incomum é um lugar', 'una nota de 0 a 1 muestra qué tan inusual es un lugar') },
+    { t: T('In the charts', 'Nos gráficos', 'En los gráficos'), d: T('a band shows what is normal for that place', 'uma faixa mostra o que é normal naquele lugar', 'una banda muestra qué es normal en ese lugar') },
+    { t: T('Scorecard', 'Placar', 'Marcador'), d: T('the model next to the simple guess', 'o modelo ao lado do palpite simples', 'el modelo junto a la suposición simple') },
   ]
   return (
     <>
@@ -153,7 +154,7 @@ export function Scorecard() {
           <div key={r.l.en} className="bar"><i style={{ width: go ? `${r.v}%` : 0, background: r.c, opacity: 0.9 }} /><span>{tx(r.l)}</span><em>{r.v}%</em></div>
         ))}
       </div>
-      <div className="sc-note">{tx(T('Land cover, places and years never seen · 16 rounds', 'Cobertura do solo, lugares e anos nunca vistos · 16 rodadas', 'Cobertura del suelo, lugares y años nunca vistos · 16 rondas'))}</div>
+      <div className="sc-note">{tx(T('Out of 100 places, how many it gets right: forest, city, water or other vegetation. Tested on places and years it never saw, repeated 16 times.', 'De cada 100 lugares, quantos ele acerta: floresta, cidade, água ou outra vegetação. Testado em lugares e anos que nunca viu, repetido 16 vezes.', 'De cada 100 lugares, cuántos acierta: bosque, ciudad, agua u otra vegetación. Probado en lugares y años que nunca vio, repetido 16 veces.'))}</div>
       <div className="chev" aria-hidden="true">{steps.map((s, k) => <span key={k}>{tx(s)}</span>)}</div>
       <div className="outs">{outs.map((o, k) => <div key={k}><b>{tx(o.t)}</b><span>{tx(o.d)}</span></div>)}</div>
     </>
@@ -177,6 +178,91 @@ export function ImpactList() {
           <p><b>{tx(r.n)}</b><span>{tx(r.d)}</span>{r.tag && <em className="mono">{tx(T('forecast ready', 'previsão pronta', 'pronóstico listo'))}</em>}</p>
         </div>
       ))}
+    </div>
+  )
+}
+
+/** What each physical driver does to the radar, by polarization. The numbers are illustrative orders of magnitude (dB), the signs are the physics. */
+const DRIVERS = [
+  { id: 'clear', human: true, co: -2, cross: -6, c: '#fb923c',
+    n: T('Forest clearing', 'Desmatamento', 'Tala de bosque'),
+    why: T('The canopy is gone, so the volume scattering of leaves, branches and trunks disappears: the cross-polarized echo (HV, VH) drops the most.', 'A copa some, e com ela o espalhamento de volume de folhas, galhos e troncos: o eco em polarização cruzada (HV, VH) é o que mais cai.', 'La copa desaparece, y con ella la dispersión de volumen de hojas, ramas y troncos: el eco en polarización cruzada (HV, VH) es el que más cae.'),
+    map: T('Vegetation loss risk · alerts layer', 'Risco de perda de vegetação · camada de alertas', 'Riesgo de pérdida de vegetación · capa de alertas') },
+  { id: 'fire', human: true, co: -1.5, cross: -4, c: '#f87171',
+    n: T('Fire', 'Queimada', 'Incendio'),
+    why: T('Burning strips canopy and leaves a scar: the cross-polarized echo falls and stays low for months, which is how a burned area differs from a dry season.', 'O fogo tira a copa e deixa uma cicatriz: o eco em polarização cruzada cai e fica baixo por meses, o que diferencia área queimada de estação seca.', 'El fuego quita la copa y deja una cicatriz: el eco en polarización cruzada cae y se mantiene bajo por meses, lo que distingue un área quemada de una estación seca.'),
+    map: T('Drought and fire risk', 'Risco de seca e queimada', 'Riesgo de sequía e incendio') },
+  { id: 'flood', human: false, co: 5, cross: 1, c: '#60a5fa',
+    n: T('Flooded forest', 'Floresta alagada', 'Bosque inundado'),
+    why: T('Water under the trees makes the pulse bounce off the water and then the trunk: a double bounce that makes the co-polarized echo (HH) much brighter. Open flood water, by contrast, goes dark.', 'A água sob as árvores faz o pulso rebater na água e depois no tronco: um rebatimento duplo que deixa o eco co-polarizado (HH) bem mais brilhante. Já a água aberta fica escura.', 'El agua bajo los árboles hace rebotar el pulso en el agua y luego en el tronco: un rebote doble que hace el eco copolarizado (HH) mucho más brillante. El agua abierta, en cambio, se ve oscura.'),
+    map: T('Flood risk · surface water layer', 'Risco de enchente · camada de água superficial', 'Riesgo de inundación · capa de agua superficial') },
+  { id: 'soil', human: false, co: 3, cross: 1, c: '#a3e635',
+    n: T('Soil moisture', 'Umidade do solo', 'Humedad del suelo'),
+    why: T('Wet soil has a high dielectric constant and reflects more: the echo, mostly the co-polarized one, rises after rain and falls in a drought.', 'O solo molhado tem constante dielétrica alta e reflete mais: o eco, sobretudo o co-polarizado, sobe depois da chuva e cai na seca.', 'El suelo mojado tiene una constante dieléctrica alta y refleja más: el eco, sobre todo el copolarizado, sube después de la lluvia y cae en la sequía.'),
+    map: T('Rain and soil moisture layers', 'Camadas de chuva e umidade do solo', 'Capas de lluvia y humedad del suelo') },
+  { id: 'crop', human: true, co: 2, cross: 4, c: '#fbbf24',
+    n: T('Crops and pasture', 'Lavoura e pasto', 'Cultivos y pasto'),
+    why: T('As a crop grows its volume scattering rises, and at harvest or ploughing it drops: the cross-polarized echo traces the crop cycle. Pasture looks very different from forest.', 'Conforme a lavoura cresce o espalhamento de volume sobe, e na colheita ou aração ele cai: o eco em polarização cruzada desenha o ciclo da lavoura. O pasto é bem diferente da floresta.', 'A medida que el cultivo crece su dispersión de volumen sube, y en la cosecha o el arado baja: el eco en polarización cruzada dibuja el ciclo del cultivo. El pasto se ve muy distinto del bosque.'),
+    map: T('Land cover · the Rondônia pasture place', 'Cobertura do solo · o lugar de pasto em Rondônia', 'Cobertura del suelo · el lugar de pasto en Rondônia') },
+  { id: 'city', human: true, co: 4, cross: 2, c: '#c084fc',
+    n: T('City growth', 'Crescimento urbano', 'Crecimiento urbano'),
+    why: T('Walls and ground form corners that send the pulse straight back: new buildings brighten the echo, mostly the co-polarized one.', 'Paredes e chão formam quinas que devolvem o pulso direto: prédios novos deixam o eco mais brilhante, sobretudo o co-polarizado.', 'Paredes y suelo forman esquinas que devuelven el pulso directo: edificios nuevos hacen el eco más brillante, sobre todo el copolarizado.'),
+    map: T('Land cover: city', 'Cobertura do solo: cidade', 'Cobertura del suelo: ciudad') },
+]
+
+export function DriversPicker() {
+  const tx = useTx()
+  const [sel, setSel] = useState('clear')
+  const d = DRIVERS.find((x) => x.id === sel) ?? DRIVERS[0]
+  const bar = (v: number, color: string) => (
+    <span className="dv-bar" aria-hidden="true">
+      <i style={{ [v >= 0 ? 'left' : 'right']: '50%', width: `${(Math.abs(v) / 8) * 50}%`, background: color }} />
+    </span>
+  )
+  return (
+    <>
+      <div className="dv-list" role="tablist">
+        {DRIVERS.map((x) => (
+          <button key={x.id} role="tab" aria-selected={sel === x.id} className={sel === x.id ? 'on' : ''} style={{ ['--c' as string]: x.c }} onClick={() => { sound.ping(); setSel(x.id) }}>
+            <i />{tx(x.n)}
+          </button>
+        ))}
+      </div>
+      <div className="dv-card" key={d.id} style={{ ['--c' as string]: d.c }}>
+        <div className="dv-head">
+          <strong>{tx(d.n)}</strong>
+          <span className="mono">{d.human ? tx(T('human driver', 'causa humana', 'causa humana')) : tx(T('natural driver', 'causa natural', 'causa natural'))}</span>
+        </div>
+        <div className="dv-pol">
+          <div><b>{tx(T('Co-pol · HH, VV', 'Co-pol · HH, VV', 'Copol · HH, VV'))}</b>{bar(d.co, '#5eead4')}<em>{d.co > 0 ? '+' : '−'}{Math.abs(d.co)} dB</em></div>
+          <div><b>{tx(T('Cross-pol · HV, VH', 'Pol. cruzada · HV, VH', 'Pol. cruzada · HV, VH'))}</b>{bar(d.cross, '#fb923c')}<em>{d.cross > 0 ? '+' : '−'}{Math.abs(d.cross)} dB</em></div>
+        </div>
+        <p>{tx(d.why)}</p>
+        <small>{tx(T('On the map', 'No mapa', 'En el mapa'))}: <b>{tx(d.map)}</b></small>
+      </div>
+      <div className="sc-note">{tx(T('Illustrative orders of magnitude. The radar says something changed; the driver is a hypothesis to confirm with optical images and rain.', 'Ordens de grandeza ilustrativas. O radar diz que algo mudou; a causa é uma hipótese a confirmar com imagem óptica e chuva.', 'Órdenes de magnitud ilustrativos. El radar dice que algo cambió; la causa es una hipótesis a confirmar con imagen óptica y lluvia.'))}</div>
+    </>
+  )
+}
+
+/** What NISAR can do beyond this project, and what SARIS adds next. */
+export function FutureList() {
+  const tx = useTx()
+  const rows = [
+    { n: T('Ground motion', 'Movimento do solo', 'Movimiento del suelo'), d: T('earthquakes, landslides, subsidence, to the centimetre (interferometry)', 'terremotos, deslizamentos, subsidência, em centímetros (interferometria)', 'terremotos, deslizamientos, subsidencia, al centímetro (interferometría)') },
+    { n: T('Glaciers and sea ice', 'Geleiras e gelo marinho', 'Glaciares y hielo marino'), d: T('flow and change, even in polar night', 'fluxo e mudança, até na noite polar', 'flujo y cambio, incluso en la noche polar') },
+    { n: T('Wetlands and floods', 'Áreas úmidas e enchentes', 'Humedales e inundaciones'), d: T('water under vegetation', 'água sob a vegetação', 'agua bajo la vegetación') },
+    { n: T('Crops and soil moisture', 'Lavouras e umidade do solo', 'Cultivos y humedad del suelo'), d: T('growth cycles and water stress', 'ciclos de crescimento e estresse hídrico', 'ciclos de crecimiento y estrés hídrico') },
+    { n: T('Forest biomass', 'Biomassa florestal', 'Biomasa forestal'), d: T('the carbon in trunks and branches (L-band)', 'o carbono em troncos e galhos (banda L)', 'el carbono en troncos y ramas (banda L)') },
+  ]
+  const next = [T('An interferometry layer for ground motion', 'Uma camada de interferometria para movimento do solo', 'Una capa de interferometría para movimiento del suelo'), T('Ascending and descending passes together', 'Passagens ascendentes e descendentes juntas', 'Pasadas ascendentes y descendentes juntas'), T('Population and land-use overlays', 'Camadas de população e uso do solo', 'Capas de población y uso del suelo')]
+  return (
+    <div className="imp fu">
+      {rows.map((r, k) => (
+        <div key={k} style={{ ['--c' as string]: '#5eead4', animationDelay: `${k * 0.1}s` }}><i /><p><b>{tx(r.n)}</b><span>{tx(r.d)}</span></p></div>
+      ))}
+      <h4 className="mono">{tx(T('SARIS next', 'SARIS a seguir', 'SARIS a continuación'))}</h4>
+      {next.map((n, k) => <div key={`n${k}`} style={{ ['--c' as string]: '#fbbf24', animationDelay: `${(rows.length + k) * 0.1}s` }}><i /><p><b>{tx(n)}</b></p></div>)}
     </div>
   )
 }
