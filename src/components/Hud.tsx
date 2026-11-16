@@ -31,7 +31,7 @@ export default function Hud({ active, blocked, scenario, wind, onZoomIn, onZoomO
           ))}
         </div>
       )}
-      <div className="readout glass">
+      <div className="readout glass" data-tour="zoom">
         {h.lat !== null && h.lon !== null && <span className="pos coords">{`${h.lat.toFixed(3)}°, ${h.lon.toFixed(3)}°`}</span>}
         <span className="pos">{fmtHeight(heightForZoom(h.zoom, h.lat ?? -5))}</span>
         <div className="zoom">

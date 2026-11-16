@@ -228,6 +228,7 @@ export default function MapView(p: Props) {
     onPick.current = p.onPick
     locked.current = p.locked
     onBlocked.current = p.onBlocked
+    mapRef.current?.getCanvas().style.setProperty('cursor', p.locked ? 'not-allowed' : 'crosshair') // the map can be clicked to pick a place
   })
 
   // Create and destroy the map.

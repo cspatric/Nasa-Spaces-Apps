@@ -64,7 +64,7 @@ export default function LayerPanel(p: Props) {
   const on = OVERLAYS.filter((o) => p.overlays[o.id as OverlayId].on).length
   const extras = [p.buildings, p.cities, p.wind].filter(Boolean).length
   return (
-    <aside className={`panel left glass ${p.open ? '' : 'collapsed'}`} aria-hidden={!p.open}>
+    <aside className={`panel left glass ${p.open ? '' : 'collapsed'}`} aria-hidden={!p.open} data-tour="layers">
       <Accordion title={t('Base map')} summary={t(BASE_SHORT[p.baseId])} defaultOpen>
         <div className="segmented">
           {(Object.keys(BASE_LAYERS) as BaseId[]).map((id) => (

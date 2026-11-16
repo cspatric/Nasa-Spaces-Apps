@@ -7,6 +7,8 @@ import InspectorPanel, { type Tab } from './components/InspectorPanel'
 import LayerPanel from './components/LayerPanel'
 import Timeline from './components/Timeline'
 import Toast, { type ToastMessage } from './components/Toast'
+import Tour from './components/Tour'
+import { TOUR_STEPS } from './lib/tourSteps'
 import { useFinishMessages } from './lib/finishMessages'
 import TopBar from './components/TopBar'
 import type { Place } from './components/SearchBox'
@@ -148,9 +150,41 @@ export default function App() {
 
   // The assistant bar (button or Ctrl/Cmd+K): what it asks the map to do
   const [assistantOpen, setAssistantOpen] = useState(false)
+  // The AI button pulses until it has been opened once on this device.
+  const [aiUsed, setAiUsed] = useState(() => { try { return localStorage.getItem('saris-ai-used') === '1' } catch { return false } })
+  const markAiUsed = () => {
+    setAiUsed(true)
+    try { localStorage.setItem('saris-ai-used', '1') } catch { /* private mode */ }
+  }
+  // The guided tour: offered once on a first visit, and again from the ? button.
+  const [tourOpen, setTourOpen] = useState(false)
+  const tourDemo = useRef(false)
+  useEffect(() => {
+    const seen = () => { try { return localStorage.getItem('saris-tour') !== null } catch { return true } } // no storage: do not risk showing it again and again
+    if (seen()) return
+    const id = setTimeout(() => {
+      if (seen()) return // another tab of this browser showed it in the meantime
+      try { localStorage.setItem('saris-tour', 'shown') } catch { return } // marked on opening, not on closing: closing the tab halfway must not bring it back
+      setTourOpen(true)
+    }, 2500)
+    return () => clearTimeout(id)
+  }, [])
+  const runTour = (action: string) => {
+    if (action === 'panels') { setLeftOpen(true); setRightOpen(true) }
+    else if (action === 'demo') {
+      setRightOpen(true); setTab('data')
+      if (!inspected) { tourDemo.current = true; setInspected({ lon: -60.02, lat: -3.12 }) } // a real place, so the controls the next steps talk about exist
+    } else if (action.startsWith('tab:')) { setRightOpen(true); setTab(action.slice(4) as Tab) }
+  }
+  const closeTour = (finished: boolean) => {
+    setTourOpen(false)
+    try { localStorage.setItem('saris-tour', finished ? 'done' : 'skipped') } catch { /* private mode */ }
+    setTab('data')
+    if (tourDemo.current) { tourDemo.current = false; setInspected(null) } // the place the tour picked is put away; yours is never touched
+  }
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setAssistantOpen((v) => !v) }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setAssistantOpen((v) => !v); setAiUsed(true); try { localStorage.setItem('saris-ai-used', '1') } catch { /* private mode */ } }
     }
     window.addEventListener('keydown', key)
     return () => window.removeEventListener('keydown', key)
@@ -226,7 +260,9 @@ export default function App() {
       </Suspense>
       <TopBar
         locked={busy}
-        onAssistant={() => setAssistantOpen(true)}
+        aiPulse={!aiUsed}
+        onTour={() => setTourOpen(true)}
+        onAssistant={() => { markAiUsed(); setAssistantOpen(true) }}
         onFly={(p: CameraPreset) => fly(p)}
         onCity={(c: City) => fly({ lon: c.lon, lat: c.lat, zoom: CITY_3D_ZOOM, bearing: c.bearing })}
         onPlace={(p: Place) => {
@@ -315,6 +351,13 @@ export default function App() {
         onIndex={setIndex}
         clamped={clamped}
       />
+      {!inspected && !region && !tourOpen && !assistantOpen && (
+        <div className="map-hint glass" role="note">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" /></svg>
+          <span><strong>{t('Click any point on the map')}</strong> {t('to analyze that place, or search a city above.')}</span>
+        </div>
+      )}
+      {tourOpen && <Tour steps={TOUR_STEPS} onClose={closeTour} run={runTour} />}
       {toast && <Toast toast={toast} onClose={() => setToast(null)} />}
       <div className="credits">
         {t('Sentinel-2 cloudless © EOX · NASA GIBS, GPM IMERG · ASF NISAR and OPERA · Open-Meteo · AWS Terrain Tiles · © OpenStreetMap contributors · MapLibre')}

@@ -36,7 +36,7 @@ function Timeline({ index, onIndex, clamped }: Props) {
   const lB = pct(L_BAND_START)
   const sc = pct(SCENARIO_START)
   return (
-    <footer className="timeline glass">
+    <footer className="timeline glass" data-tour="timeline">
       <div className="when">
         <strong>{formatDay(ms, locale)}</strong>
         <span className={`mode ${mode.key}`}>{t(mode.label)}{clamped && mode.key !== 'scenario' ? t(' · latest imagery') : ''}</span>

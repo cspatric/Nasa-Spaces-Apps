@@ -41,7 +41,7 @@ export default function AnalysisBox({ state, busy, onRun, onCancel }: Props) {
   const notes = [...state.notices].sort((a, b) => ORDER[a.level] - ORDER[b.level])
 
   return (
-    <section className="analysis" aria-label={t('Analysis period')}>
+    <section className="analysis" aria-label={t('Analysis period')} data-tour="analysis">
       <h4 className="sub">{t('Analysis period')}</h4>
       <div className="range-row">
         <label><span>{t('From')}</span><input type="date" value={range.start} min={MIN_DAY} max={today} disabled={busy} onChange={(e) => setRange({ ...range, start: e.target.value })} /></label>

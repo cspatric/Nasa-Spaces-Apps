@@ -98,8 +98,8 @@ export default function InspectorPanel(p: Props) {
   const pct = Math.round(100 * progressOf(p.forecast.phase, p.forecast.done, p.forecast.total))
 
   return (
-    <aside className={`panel right glass inspector ${p.open ? '' : 'collapsed'}`} aria-hidden={!p.open}>
-      <div className="tabs" role="tablist">
+    <aside className={`panel right glass inspector ${p.open ? '' : 'collapsed'}`} aria-hidden={!p.open} data-tour="inspector">
+      <div className="tabs" role="tablist" data-tour="tabs">
         <button role="tab" aria-selected={p.tab === 'data'} className={p.tab === 'data' ? 'on' : ''} onClick={() => p.onTab('data')}>{t('Data')}</button>
         <button role="tab" aria-selected={p.tab === 'forecast'} className={p.tab === 'forecast' ? 'on' : ''} onClick={() => p.onTab('forecast')}>
           {t('Forecast')}
@@ -120,6 +120,9 @@ export default function InspectorPanel(p: Props) {
                   <button className="btn ghost" disabled={p.busy} title={p.busy ? t('Locked while data is being processed') : undefined} onClick={p.onClear}>{t('Clear')}</button>
                 </div>
                 <AnalysisBox state={p.analysis} busy={p.busy} onRun={p.onAnalyze} onCancel={p.onCancel} />
+                {p.analysis.outcome && !p.busy && p.analysis.outcome.kind !== 'cancelled' && (
+                  <button className="btn ghost wide next-step" onClick={() => p.onTab('forecast')}>{t('Next: forecast this place')} →</button>
+                )}
                 <ul className="series">
                   {(() => {
                     const st = p.analysis.radar
@@ -180,7 +183,11 @@ export default function InspectorPanel(p: Props) {
                 )}
               </>
             ) : (
-              <p className="empty">{t('Click the map or search a city.')}</p>
+              <ol className="howto" aria-label={t('How to start')}>
+                <li><i>1</i><span><strong>{t('Click a point on the map')}</strong>{t('or search a city above. This is the place everything is about.')}</span></li>
+                <li><i>2</i><span><strong>{t('Choose a period')}</strong>{t('dates, or 30 days to 5 years. The sensor is picked for you.')}</span></li>
+                <li><i>3</i><span><strong>{t('Press Analyze')}</strong>{t('radar and rain fill in as they are read, with notes on how far to trust them.')}</span></li>
+              </ol>
             )}
             {p.pins.length > 0 && (
               <>
@@ -224,8 +231,8 @@ export default function InspectorPanel(p: Props) {
         )}
       </div>
 
-      {hasTarget && (
-        <div className="pinned">
+      {hasTarget && (p.tab === 'forecast' || p.region !== null || loading) && ( // the forecast button lives on the Forecast tab only; the Data tab has its own button (Analyze)
+        <div className="pinned" data-tour="forecast-run">
           {p.region ? (
             <div className="pin-row">
               <span className="pin-label">{p.region.info.name} · {t('ready-made')}</span>

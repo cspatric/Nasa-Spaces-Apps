@@ -108,7 +108,7 @@ export default function SearchBox({ onSelect, locked = false }: Props) {
   }
 
   return (
-    <div className="search glass" ref={box}>
+    <div className="search glass" ref={box} data-tour="search">
       <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
         <circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
         <path d="m13 13 4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
