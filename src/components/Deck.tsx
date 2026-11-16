@@ -135,7 +135,11 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
   // are on, not all from the same stale render. The voice is cut on the spot, in the click itself, not when the new page
   // has been drawn: that is what keeps two sentences from ever playing over each other.
   const pageRef = useRef(0)
+  // The first page waits for Play: browsers do not allow sound before a click anyway, and a voice that starts by itself (or
+  // not at all) is confusing. Play starts the voice and the captions; moving to another page starts them too.
+  const [started, setStarted] = useState(false)
   const go = (to: number) => {
+    setStarted(true)
     pageRef.current = to
     voice.stop()
     setI(to)
@@ -168,9 +172,11 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
     return () => { off(); voice.stop() }
   }, [])
   const narration = step.narration[lang]
+  const waiting = i === 0 && !started // the first page, before Play
   useEffect(() => {
+    if (waiting) return
     emitNarration({ deck, step: step.id, index: i, lang, text: narration })
-  }, [deck, step.id, i, lang, narration, muted]) // the text, not the step object: a new object with the same page must not restart the voice; `muted` too: turning the voice back on speaks the current page again
+  }, [deck, step.id, i, lang, narration, muted, waiting]) // the text, not the step object: a new object with the same page must not restart the voice; `muted` too: turning the voice back on speaks the current page again
 
   const root = useRef<HTMLDivElement>(null)
   // The parallax follows the pointer at most once per frame, in steps of 0.05, so a still hand costs nothing and a moving one little.
@@ -239,7 +245,14 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
         )}
       </main>
 
-      <Caption key={`${step.id}-${lang}`} text={tx(step.narration)} label={lang === 'pt' ? 'Narração' : lang === 'es' ? 'Narración' : 'Narration'} />
+      {waiting ? (
+        <button className="play-start" onClick={() => { sound.click(); setStarted(true) }} autoFocus>
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" fill="currentColor" /></svg>
+          <span><b>{lang === 'pt' ? 'Reproduzir' : lang === 'es' ? 'Reproducir' : 'Play'}</b><small>{lang === 'en' ? 'starts the narrator and the captions' : lang === 'pt' ? 'inicia a narração e a legenda' : 'inicia la narración y los subtítulos'}</small></span>
+        </button>
+      ) : (
+        <Caption key={`${step.id}-${lang}`} text={tx(step.narration)} label={lang === 'pt' ? 'Narração' : lang === 'es' ? 'Narración' : 'Narration'} />
+      )}
 
       <footer className="foot">
         <button className="dk-btn back" onClick={prev} disabled={i === 0 && !back} title={prevTitle}>

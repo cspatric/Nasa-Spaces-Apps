@@ -331,3 +331,11 @@
 
 .deck .prose { display: grid; gap: 12px; } .deck .prose p { margin: 0; font-size: 14.5px; line-height: 1.65; color: #d3deef; }
 .deck .sc-prose { margin: 0; font-size: 13.5px; line-height: 1.55; color: #cdd9ee; }
+
+/* the first page waits for Play: the voice and the captions start from here */
+.deck .play-start { position: absolute; z-index: 4; left: 50%; bottom: 82px; transform: translateX(-50%); display: flex; align-items: center; gap: 16px; padding: 16px 30px 16px 22px; background: var(--acc); color: #04121a; border: 0; cursor: pointer; font: inherit; text-align: left; animation: deck-pulse 2.4s infinite; }
+.deck .play-start svg { flex: none; width: 38px; height: 38px; padding: 8px; border-radius: 50%; background: #04121a; color: var(--acc); }
+.deck .play-start span { display: grid; gap: 1px; } .deck .play-start b { font-size: 18px; letter-spacing: .02em; } .deck .play-start small { font-size: 12px; opacity: .75; }
+.deck .play-start:hover { filter: brightness(1.08); } .deck .play-start:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+@media (max-width: 860px) { .deck .play-start { bottom: 74px; } }
+.deck .play-start small { color: #04121a; opacity: .8; }
