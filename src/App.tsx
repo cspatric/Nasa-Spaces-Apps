@@ -318,7 +318,7 @@ export default function App() {
       {toast && <Toast toast={toast} onClose={() => setToast(null)} />}
       <div className="credits">
         {t('Sentinel-2 cloudless © EOX · NASA GIBS, GPM IMERG · ASF NISAR and OPERA · Open-Meteo · AWS Terrain Tiles · © OpenStreetMap contributors · MapLibre')}
-        {' · '}<Link to="/tecnico">{t('Data and methods')}</Link>
+        {' · '}<Link to="/technical">{t('Data and methods')}</Link>
       </div>
     </div>
   )

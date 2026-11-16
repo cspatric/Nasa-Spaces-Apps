@@ -1,17 +1,22 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { usePath } from './router'
+import { replace, usePath } from './router'
 import ProjectDeck from './pages/ProjectDeck'
 import SatelliteDeck from './pages/SatelliteDeck'
 import TechnicalPage from './pages/TechnicalPage'
 
 const App = lazy(() => import('./App.tsx'))
 
-/** Pages: `/` presents the project, `/satelite` is the satellite story, `/mapa` is the observatory. */
+/** Pages: `/` presents the project, `/satellite` is the satellite story, `/map` is the observatory, `/technical` is data and methods. */
+
+/** Addresses used before the routes were renamed: links that were already shared keep working. */
+const OLD: Record<string, string> = { '/mapa': '/map', '/satelite': '/satellite', '/tecnico': '/technical' }
+
 export default function Root() {
   const path = usePath().replace(/\/+$/, '') || '/'
-  const isMap = path === '/mapa'
-  const isTech = path === '/tecnico' // a reading page: it scrolls, unlike the map and the decks
+  const isMap = path === '/map'
+  const isTech = path === '/technical' // a reading page: it scrolls, unlike the map and the decks
   const isDeck = !isMap && !isTech
+  useEffect(() => { if (OLD[path]) replace(OLD[path]) }, [path])
   useEffect(() => {
     document.body.classList.toggle('is-app', isMap) // the map and the decks fill the window and never scroll the page
     document.body.classList.toggle('is-deck', isDeck)
@@ -24,6 +29,6 @@ export default function Root() {
     )
   }
   if (isTech) return <TechnicalPage />
-  if (path === '/satelite') return <SatelliteDeck />
+  if (path === '/satellite') return <SatelliteDeck />
   return <ProjectDeck />
 }

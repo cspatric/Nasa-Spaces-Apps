@@ -10,13 +10,13 @@ radar data, OPERA RTC-S1 (C-band, 2016 to 2026) and NASA climate data.
 
 | The challenge asks for | Where it is |
 |---|---|
-| An interactive app on NISAR radar data that tracks and visualizes surface change | The 3D map (`/mapa`): NISAR backscatter layer, OPERA surface-water and vegetation-loss layers, a timeline 2016 to 2030, a two-date slider and threshold (deck page "What changed"), area and point analysis, risks |
+| An interactive app on NISAR radar data that tracks and visualizes surface change | The 3D map (`/map`): NISAR backscatter layer, OPERA surface-water and vegetation-loss layers, a timeline 2016 to 2030, a two-date slider and threshold (deck page "What changed"), area and point analysis, risks |
 | Intuitive tools: change-detection maps, time-series animations, dashboards | Change threshold slider, animated timeline, charts with expected range, risk cards per place and region |
 | Different polarizations and frequencies | L-band NISAR (HH, HV) and C-band Sentinel-1 (VV, VH); the deck page "Each driver leaves its own signature" shows which polarization shows which change |
 | Time series and ancillary data | Ten years of monthly radar, IMERG rain, Sentinel-2 ground color, land-cover class per place |
 | Hypothesize the physical drivers (why does the Amazon change?) | Deck pages on drivers (clearing, fire, flooded forest, soil moisture, crops and pasture, city growth) and on the Amazon's impact on the rest of South America |
 | Human drivers and natural resources | Drivers marked human or natural; vegetation-loss, flood and drought-and-fire risks; Rondônia pasture and Novo Progresso among the sample places |
-| Compelling storytelling | Two decks (`/` and `/satelite`): a problem and its solution in every page, narrated, with a 3D space backdrop |
+| Compelling storytelling | Two decks (`/` and `/satellite`): a problem and its solution in every page, narrated, with a 3D space backdrop |
 | Interactive summary (image sliders, web maps) | The two-date slider, the clickable pixel matrix, the forecast stages, the map itself, and an AI bar that drives it |
 | Future applications of NISAR | Deck page "NISAR can do much more": ground motion, ice, wetlands, crops, biomass, and what SARIS adds next |
 | Open-source, user-friendly | Plain-language pages in English, Portuguese and Spanish; **add a LICENSE before the submission** (none yet) |
@@ -40,9 +40,9 @@ Page Down; the left arrow goes back), progress ticks you can click, and a narrat
 | Route | What it is |
 |---|---|
 | `/` | Presentation of the project (15 pages, short narrations): the problem, NISAR, pixels and dates, the machine learning and its proof, the observatory (map, layers, time, risks, ready-made regions), the Amazon's impact on the rest of South America, the honest wording. It ends at the map. |
-| `/satelite` | The satellite deck "Dancing with the SARs" (11 pages): NISAR, its history, the radar echo, pixels, two dates and a change threshold, what to write on the map, rain and its lag, the model, the honest wording. It ends by leading to the map. |
-| `/tecnico` | Data and methods: the technical record. Headline numbers, every data product and how it is read, the cleaning pipeline, the forecast and risk models, the land-cover test, the limits we state ourselves, and sources. Linked from the map's footer. |
-| `/mapa` | The observatory (3D map, layers, forecast, risks, simulations, air currents, AI bar). Both decks end with an "Open the map" button that lands here. |
+| `/satellite` | The satellite deck "Dancing with the SARs" (11 pages): NISAR, its history, the radar echo, pixels, two dates and a change threshold, what to write on the map, rain and its lag, the model, the honest wording. It ends by leading to the map. |
+| `/technical` | Data and methods: the technical record. Headline numbers, every data product and how it is read, the cleaning pipeline, the forecast and risk models, the land-cover test, the limits we state ourselves, and sources. Linked from the map's footer. |
+| `/map` | The observatory (3D map, layers, forecast, risks, simulations, air currents, AI bar). Both decks end with an "Open the map" button that lands here. |
 
 ### On the map
 

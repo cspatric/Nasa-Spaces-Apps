@@ -168,7 +168,7 @@ export default function TechnicalPage() {
           <div className="tx-lang" role="group" aria-label="Language">
             {LANGS.map((l) => <button key={l.id} className={lang === l.id ? 'on' : ''} title={l.name} onClick={() => setLang(l.id)}>{l.label}</button>)}
           </div>
-          <Link to="/mapa" className="tx-open">{tx(T('Open the map', 'Abrir o mapa', 'Abrir el mapa'))} →</Link>
+          <Link to="/map" className="tx-open">{tx(T('Open the map', 'Abrir o mapa', 'Abrir el mapa'))} →</Link>
         </div>
       </header>
 

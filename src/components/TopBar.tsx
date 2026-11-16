@@ -67,7 +67,7 @@ export default function TopBar({ onFly, onCity, onPlace, leftOpen, rightOpen, on
         <CityMenu onCity={onCity} />
       </nav>
       <button className={`toggle glass ${rightOpen ? 'on' : ''}`} onClick={onRight} aria-pressed={rightOpen}>{t('Inspector')}</button>
-      <Link className="toggle glass data-link" to="/tecnico" aria-label={t('Data and sources')} title={`${t('Data and sources')}: ${t('Where the data comes from, with links, and how it is processed')}`}>
+      <Link className="toggle glass data-link" to="/technical" aria-label={t('Data and sources')} title={`${t('Data and sources')}: ${t('Where the data comes from, with links, and how it is processed')}`}>
         <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <ellipse cx="10" cy="5" rx="6" ry="2.6" /><path d="M4 5v5c0 1.4 2.7 2.6 6 2.6s6-1.2 6-2.6V5M4 10v5c0 1.4 2.7 2.6 6 2.6s6-1.2 6-2.6v-5" />
         </svg>

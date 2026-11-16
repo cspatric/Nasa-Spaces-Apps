@@ -17,4 +17,11 @@ export function navigate(to: string) {
   notify()
 }
 
+/** Changes the address without adding a history entry (used to send old links to their new place). */
+export function replace(to: string) {
+  if (to === location.pathname) return
+  history.replaceState({}, '', to)
+  notify()
+}
+
 export const usePath = () => useSyncExternalStore(subscribe, () => location.pathname, () => '/')

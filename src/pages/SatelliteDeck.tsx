@@ -6,8 +6,8 @@ export default function SatelliteDeck() {
   return (
     <Deck
       deck="satellite" name="NISAR · DANCING WITH THE SARS" steps={satelliteDeckSteps()} chapters={SATELLITE_CHAPTERS}
-      finish={{ to: '/mapa', label: T('Open the map', 'Abrir o mapa', 'Abrir el mapa') }}
-      skip={{ to: '/mapa', label: T('Skip to the map', 'Ir ao mapa', 'Ir al mapa') }}
+      finish={{ to: '/map', label: T('Open the map', 'Abrir o mapa', 'Abrir el mapa') }}
+      skip={{ to: '/map', label: T('Skip to the map', 'Ir ao mapa', 'Ir al mapa') }}
       back={{ to: '/', label: T('The project', 'O projeto', 'El proyecto') }} />
   )
 }
