@@ -138,6 +138,7 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
   // The first page waits for Play: browsers do not allow sound before a click anyway, and a voice that starts by itself (or
   // not at all) is confusing. Play starts the voice and the captions; moving to another page starts them too.
   const [started, setStarted] = useState(false)
+  const waiting = i === 0 && !started // the first page, before Play
   const go = (to: number) => {
     setStarted(true)
     pageRef.current = to
@@ -146,6 +147,7 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
   }
   const next = () => {
     sound.click()
+    if (waiting) { setStarted(true); return } // before Play, Continue and the keys mean "play", they never skip the first page
     if (pageRef.current >= steps.length - 1) { voice.stop(); navigate(finish.to) }
     else go(pageRef.current + 1)
   }
@@ -172,7 +174,6 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
     return () => { off(); voice.stop() }
   }, [])
   const narration = step.narration[lang]
-  const waiting = i === 0 && !started // the first page, before Play
   useEffect(() => {
     if (waiting) return
     emitNarration({ deck, step: step.id, index: i, lang, text: narration })
@@ -263,7 +264,7 @@ export default function Deck({ name, chapters, deck, steps, finish, skip, back }
           {steps.map((s, k) => <button key={s.id} role="tab" aria-selected={k === i} aria-label={`${k + 1}`} className={k < i ? 'done' : k === i ? 'cur' : ''} onClick={() => { sound.click(); go(k) }} />)}
         </div>
         <span className="dk-count mono">{String(i + 1).padStart(2, '0')} / {String(steps.length).padStart(2, '0')}</span>
-        <button className="dk-btn go" onClick={next}>{last ? tx(finish.label) : lang === 'pt' ? 'Continuar' : lang === 'es' ? 'Continuar' : 'Continue'} →</button>
+        <button className="dk-btn go" onClick={next} disabled={waiting} tabIndex={waiting ? -1 : 0} aria-hidden={waiting} style={waiting ? { visibility: 'hidden' } : undefined}>{last ? tx(finish.label) : lang === 'pt' ? 'Continuar' : lang === 'es' ? 'Continuar' : 'Continue'} →</button>
       </footer>
     </div>
   )
